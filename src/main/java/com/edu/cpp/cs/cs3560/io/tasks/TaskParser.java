@@ -1,4 +1,4 @@
-package com.edu.cpp.cs.cs3560.model.manager;
+package com.edu.cpp.cs.cs3560.io.tasks;
 
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import com.edu.cpp.cs.cs3560.model.tasks.anti.AntiTask;
@@ -6,6 +6,10 @@ import com.edu.cpp.cs.cs3560.model.tasks.recurring.Frequency;
 import com.edu.cpp.cs.cs3560.model.tasks.recurring.RecurringTask;
 import com.edu.cpp.cs.cs3560.model.tasks.trans.TransientTask;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes;
+import com.edu.cpp.cs.cs3560.model.types.TaskTypes.AntiTasks;
+import com.edu.cpp.cs.cs3560.model.types.TaskTypes.RecurringTasks;
+import com.edu.cpp.cs.cs3560.model.types.TaskTypes.TransientTasks;
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -13,7 +17,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -26,6 +29,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +39,7 @@ public final class TaskParser {
     private static final TaskParser parser = new TaskParser();
     private static final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
+            .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
             .setDateFormat("yyyyMMdd")
             .create();
 
@@ -50,19 +55,18 @@ public final class TaskParser {
     }
 
     public Task parseTask(ParsedTask parsed){
-
         String name = parsed.name;
         String type = parsed.type;
         LocalDate date = parseDate(parsed.date);
         LocalTime startTime = parseTime(parsed.startTime);
-        Duration duration = parseDuration(parsed.duration);
+        TemporalAmount duration = parseDuration(parsed.duration);
 
         Type ptype = TaskTypes.getTaskType(type);
-        if(ptype == TransientTask.class){
+        if(ptype == TransientTasks.class){
             return new TransientTask(name, type, date, startTime, duration);
-        } else if (ptype == AntiTask.class){
+        } else if (ptype == AntiTasks.class){
             return new AntiTask(name, type, date, startTime, duration);
-        } else if(ptype == RecurringTask.class){
+        } else if(ptype == RecurringTasks.class){
             LocalDate endDate = parseDate(parsed.endDate);
             Frequency frequency = Frequency.getFrequency(parsed.frequency);
 
@@ -76,11 +80,6 @@ public final class TaskParser {
     private TransientTask createTransientTask(){
         return null;
     }
-
-
-
-
-
 
 
     public List<ParsedTask> parseFile(String file) throws IOException {
@@ -114,32 +113,54 @@ public final class TaskParser {
         return gson.fromJson(json, ParsedTask.class);
     }
 
-    private LocalDate parseDate(int date){
+    public static LocalDate parseDate(int date){
         return parseDate(String.valueOf(date));
     }
 
-    private LocalDate parseDate(String date){
+    public static LocalDate parseDate(String date){
         return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
     }
 
-    private LocalTime parseTime(double time){
+    public static LocalTime parseTime(String time){
+        return parseTime(Double.parseDouble(time));
+    }
+
+    public static LocalTime parseTime(double time){
         int hour = (int) time;
         int minute = (int) ((time - hour) * 60);
 
         return LocalTime.of(hour, minute);
-        //String hours = StringUtils.leftPad(String.valueOf((long) time), 2, '0');
-        //String minutes = StringUtils.rightPad(String.valueOf((long) ((time - (long) time) * 60)), 2, '0');
-        //String parsed = hours + ":" + minutes;
-
-
-        //return LocalTime.parse(parsed, DateTimeFormatter.ISO_LOCAL_TIME);
     }
 
-    private Duration parseDuration(double duration){
+    public static TemporalAmount parseDuration(String duration){
+        return parseDuration(Double.parseDouble(duration));
+    }
+
+    public static TemporalAmount parseDuration(double duration){
         long hours = (long) duration;
         long minutes = (long) ((duration - hours) * 60);
 
         return Duration.ofHours(hours).plusMinutes(minutes);
+    }
+
+    public static int parseDateToInteger(LocalDate date){
+        return Integer.parseInt(date.format(DateTimeFormatter.BASIC_ISO_DATE));
+    }
+
+    public static double parseTimeToDouble(LocalTime time){
+        double hour = time.getHour();
+        double minute = ((double) time.getMinute()) / 60.0;
+
+        return hour + minute;
+    }
+
+    public static double parseDuration(TemporalAmount amount){
+        Duration duration = Duration.from(amount);
+        double hour = duration.toHoursPart();
+        double minute = ((double) duration.toMinutesPart()) / 60.0;
+
+
+        return hour + minute;
     }
 
     public static class ParsedTask {

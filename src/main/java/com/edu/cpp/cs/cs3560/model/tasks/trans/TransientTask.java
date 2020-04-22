@@ -1,6 +1,7 @@
 package com.edu.cpp.cs.cs3560.model.tasks.trans;
 
 import com.edu.cpp.cs.cs3560.model.tasks.AbstractTask;
+import com.edu.cpp.cs.cs3560.model.tasks.NonRecurringTask;
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import com.edu.cpp.cs.cs3560.model.tasks.anti.AntiTask;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -11,12 +12,13 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.TemporalAmount;
 import java.util.Objects;
 
-public class TransientTask extends AbstractTask implements Task {
+public class TransientTask extends NonRecurringTask implements Task {
 
 
-    public TransientTask(String name, String type, LocalDate date, LocalTime startTime, Duration duration) {
+    public TransientTask(String name, String type, LocalDate date, LocalTime startTime, TemporalAmount duration) {
         super(name, type, date, startTime, duration);
     }
 
@@ -40,10 +42,13 @@ public class TransientTask extends AbstractTask implements Task {
         return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
                 .append("Name", name)
                 .append("Type", type)
-                .append("Date", date)
-                .append("StartTime", startTime)
+                .append("Date", parseDateToInteger(date))
+                .append("StartTime", parseTimeToDouble(startTime))
                 .append("Duration", duration)
-                .toString();
+                .toString()
+                .replace("{", "{\n")
+                .replace("}", "\n}")
+                .replace(",", ",\n");
     }
 
 }

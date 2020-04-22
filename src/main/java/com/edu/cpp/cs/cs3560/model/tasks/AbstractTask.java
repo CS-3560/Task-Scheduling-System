@@ -1,27 +1,35 @@
 package com.edu.cpp.cs.cs3560.model.tasks;
 
 
-import com.edu.cpp.cs.cs3560.model.Mappable;
+import com.google.gson.annotations.SerializedName;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
 
-public abstract class AbstractTask implements Task, Comparable<Task>, Mappable {
+import java.time.temporal.TemporalAmount;
+
+
+public abstract class AbstractTask implements Task, Comparable<Task> {
+
+    @SerializedName("Name")
     protected String name;
+
+    @SerializedName("Type")
     protected String type;
-    protected LocalDate date;
+
+    @SerializedName("StartTime")
     protected LocalTime startTime;
-    protected Duration duration;
+
+    @SerializedName("Duration")
+    protected TemporalAmount duration;
 
     public AbstractTask(){}
 
-    public AbstractTask(String name, String type, LocalDate date, LocalTime startTime, Duration duration) {
+    public AbstractTask(String name, String type, LocalTime startTime, TemporalAmount duration) {
         this.name = name;
         this.type = type;
-        this.date = date;
         this.startTime = startTime;
         this.duration = duration;
     }
@@ -47,16 +55,6 @@ public abstract class AbstractTask implements Task, Comparable<Task>, Mappable {
     }
 
     @Override
-    public LocalDate getDate() {
-        return date;
-    }
-
-    @Override
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    @Override
     public LocalTime getStartTime() {
         return startTime;
     }
@@ -67,44 +65,53 @@ public abstract class AbstractTask implements Task, Comparable<Task>, Mappable {
     }
 
     @Override
-    public Duration getDuration() {
+    public TemporalAmount getDuration() {
         return duration;
     }
 
     @Override
-    public void setDuration(Duration duration) {
+    public void setDuration(TemporalAmount duration) {
         this.duration = duration;
     }
 
+    @Override
     public LocalTime getEndTime(){
         return startTime.plus(duration);
     }
 
     @Override
-    public Map<String, ?> toMap(){
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("Name", name);
-        map.put("Type", type);
-        map.put("Date", date);
-        map.put("StartTime", startTime);
-        map.put("Duration", duration);
-
-        return map;
-    }
-
-    @Override
     public int compareTo(Task other){
-        int cd = this.date.compareTo(other.getDate());
+        int cd = getDate().compareTo(other.getDate());
         if(cd == 0){
             int ct = this.startTime.compareTo(other.getStartTime());
             if(ct == 0){
-                return this.duration.compareTo(other.getDuration());
+                return Duration.from(this.duration).compareTo(Duration.from(other.getDuration()));
             }
 
             return ct;
         }
 
         return cd;
+    }
+
+    protected final int parseDateToInteger(LocalDate date){
+        return Integer.parseInt(date.format(DateTimeFormatter.BASIC_ISO_DATE));
+    }
+
+    protected final double parseTimeToDouble(LocalTime time){
+        double hour = time.getHour();
+        double minute = ((double) time.getMinute()) / 60.0;
+
+        return hour + minute;
+    }
+
+    protected final double parseDuration(TemporalAmount amount){
+        Duration duration = Duration.from(amount);
+        double hour = duration.toHoursPart();
+        double minute = ((double) duration.toMinutesPart()) / 60.0;
+
+
+        return hour + minute;
     }
 
 }

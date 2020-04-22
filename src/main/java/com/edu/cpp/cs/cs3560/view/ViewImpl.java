@@ -1,7 +1,10 @@
 package com.edu.cpp.cs.cs3560.view;
 
 import com.edu.cpp.cs.cs3560.ui.UserInterface;
-import com.edu.cpp.cs.cs3560.util.JSONUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,16 +14,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class View {
-
+public class ViewImpl {
     private static final String INVALID_INPUT_ERROR_MESSAGE = "Invalid Input. Please Try Again.";
     private static final String CORRECTNESS_PROMPT = "Is this correct? [Y,n]";
     private static final String PROMPT_USER_INPUT_FORMAT = "Enter %s:\t";
+    private static final String INPUT_NON_APPLICABLE_MESSAGE = "If not applicable, enter N/A";
+
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     private final UserInterface ui;
 
 
-    public View(UserInterface ui) {
+    public ViewImpl(UserInterface ui) {
         this.ui = ui;
     }
 
@@ -51,6 +56,8 @@ public class View {
     }
 
     public Map<String, String> getUserTaskInfo(Collection<String> fields){
+        ui.displayln(INPUT_NON_APPLICABLE_MESSAGE);
+
         Map<String, String> info = new LinkedHashMap<>();
         for(String field : fields){
             info.put(field, ui.getInput(String.format(PROMPT_USER_INPUT_FORMAT, field)));
@@ -75,7 +82,7 @@ public class View {
             ui.displayln(options);
             input = ui.getInput("Which field to update? (Enter 'D' or 'Done' to finish):\t");
             try {
-                String key = isInteger(input) ? keys.get(Integer.parseInt(input) - 1) : input;
+                String key = NumberUtils.isParsable(input) ? keys.get(Integer.parseInt(input) - 1) : input;
                 if(!updated.containsKey(key)){
                     throw new IndexOutOfBoundsException();
                 }
@@ -88,7 +95,7 @@ public class View {
             }
 
             Objects.requireNonNull(updated.replace(input, ui.getInput(String.format(PROMPT_USER_INPUT_FORMAT, input))));
-        } while(!(input.equalsIgnoreCase("DONE") || input.equalsIgnoreCase("D")));
+        } while(!(StringUtils.equalsAnyIgnoreCase(input, "DONE", "D")));
 
 
         return updated;
@@ -96,7 +103,7 @@ public class View {
 
 
     private boolean isCorrect(Map<String, String> m){
-        return isCorrect(JSONUtils.toPrettyString(m));
+        return isCorrect(gson.toJson(m));
     }
 
     private boolean isCorrect(String s){
@@ -128,14 +135,7 @@ public class View {
         return sb.toString();
     }
 
-    private boolean isInteger(String s){
-        try {
-            Integer.parseInt(s);
-            return true;
-        } catch (NumberFormatException e){
-            return false;
-        }
-    }
+
 
 
 }

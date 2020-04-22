@@ -4,9 +4,11 @@ import com.edu.cpp.cs.cs3560.model.Mappable;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.TemporalAmount;
 
-public interface Task extends Mappable {
+public interface Task extends Comparable<Task>{
 
     String getName();
 
@@ -24,10 +26,14 @@ public interface Task extends Mappable {
 
     void setStartTime(LocalTime startTime);
 
-    Duration getDuration();
+    TemporalAmount getDuration();
 
-    void setDuration(Duration duration);
+    void setDuration(TemporalAmount duration);
 
     LocalTime getEndTime();
+
+    LocalDateTime getDateTime();
+
+    LocalDateTime getEndDateTime();
 
 }
