@@ -2,6 +2,7 @@ package com.edu.cpp.cs.cs3560;
 
 import com.edu.cpp.cs.cs3560.model.manager.TaskModelManager;
 import com.edu.cpp.cs.cs3560.model.tasks.trans.TransientTask;
+import com.google.common.collect.HashMultimap;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -39,7 +40,7 @@ public class Scenario1Tests {
             2
     );
 
-    private final TaskModelManager manager = new TaskModelManager();
+    private final TaskModelManager manager = new TaskModelManager(HashMultimap.create());
 
     @Before
     public void readSet1() throws IOException {

@@ -2,6 +2,7 @@ package com.edu.cpp.cs.cs3560;
 
 import com.edu.cpp.cs.cs3560.model.manager.TaskModelManager;
 import com.edu.cpp.cs.cs3560.model.tasks.anti.AntiTask;
+import com.google.common.collect.HashMultimap;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -30,7 +31,7 @@ public class Scenario2Tests {
     );
 
 
-    private final TaskModelManager manager = new TaskModelManager();
+    private final TaskModelManager manager = new TaskModelManager(HashMultimap.create());
 
 
     @Before
