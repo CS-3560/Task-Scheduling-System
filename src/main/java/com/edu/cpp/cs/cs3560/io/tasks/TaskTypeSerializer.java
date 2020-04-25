@@ -2,7 +2,6 @@ package com.edu.cpp.cs.cs3560.io.tasks;
 
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import com.edu.cpp.cs.cs3560.model.tasks.anti.AntiTask;
-import com.edu.cpp.cs.cs3560.model.tasks.recurring.RecurringTask;
 import com.edu.cpp.cs.cs3560.model.tasks.recurring.RecurringTransientTask;
 import com.edu.cpp.cs.cs3560.model.tasks.trans.TransientTask;
 import com.google.gson.ExclusionStrategy;
@@ -50,7 +49,7 @@ public class TaskTypeSerializer implements TaskSerializer {
             out.name("Name").value(value.getName());
             out.name("Type").value(value.getType());
             out.name("Date").value(TaskParser.parseDateToInteger(value.getDate()));
-            out.name("StartName").value(TaskParser.parseTimeToDouble(value.getStartTime()));
+            out.name("StartTime").value(TaskParser.parseTimeToDouble(value.getStartTime()));
             out.name("Duration").value(TaskParser.parseDuration(value.getDuration()));
             out.endObject();
         }

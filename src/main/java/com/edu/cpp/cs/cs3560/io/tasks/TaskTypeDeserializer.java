@@ -19,10 +19,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.lang.reflect.Type;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,22 +31,21 @@ public class TaskTypeDeserializer implements TaskDeserializer {
     private static final Gson gson = new Gson();
 
 
-
     @Override
     public List<Task> deserialize(String json) {
         return parseTasks(parseJson(json));
     }
 
-    private List<Task> parseTasks(Collection<ParsedTask> parsed){
+    private List<Task> parseTasks(Collection<DeserializedTask> parsed){
         return parsed.stream().map(this::parseTask).collect(Collectors.toList());
     }
 
-    private Task parseTask(ParsedTask parsed){
+    private Task parseTask(DeserializedTask parsed){
         String name = parsed.name;
         String type = parsed.type;
-        LocalDate date = parseDate(parsed.date);
-        LocalTime startTime = parseTime(parsed.startTime);
-        TemporalAmount duration = parseDuration(parsed.duration);
+        LocalDate date = TaskParser.parseDate(parsed.date);
+        LocalTime startTime = TaskParser.parseTime(parsed.startTime);
+        TemporalAmount duration = TaskParser.parseDuration(parsed.duration);
 
         Type ptype = TaskTypes.getTaskType(type);
         if(ptype == TransientTasks.class){
@@ -56,7 +53,7 @@ public class TaskTypeDeserializer implements TaskDeserializer {
         } else if (ptype == AntiTasks.class){
             return new AntiTask(name, type, date, startTime, duration);
         } else if(ptype == RecurringTasks.class){
-            LocalDate endDate = parseDate(parsed.endDate);
+            LocalDate endDate = TaskParser.parseDate(parsed.endDate);
             Frequency frequency = Frequency.getFrequency(parsed.frequency);
 
             return new RecurringTask(name, type, date, startTime, duration, endDate, frequency);
@@ -65,8 +62,8 @@ public class TaskTypeDeserializer implements TaskDeserializer {
         }
     }
 
-    private List<ParsedTask> parseJson(String json){
-        List<ParsedTask> tasks = new ArrayList<>();
+    private List<DeserializedTask> parseJson(String json){
+        List<DeserializedTask> tasks = new ArrayList<>();
 
         JsonElement element = JsonParser.parseString(json);
 
@@ -81,40 +78,15 @@ public class TaskTypeDeserializer implements TaskDeserializer {
     }
 
 
-    private List<ParsedTask> parseJsonArray(String json){
-        return gson.fromJson(json, new TypeToken<ArrayList<TaskParser.ParsedTask>>(){}.getType());
+    private List<DeserializedTask> parseJsonArray(String json){
+        return gson.fromJson(json, new TypeToken<ArrayList<DeserializedTask>>(){}.getType());
     }
 
-    private ParsedTask parseJsonObject(String json){
-        return gson.fromJson(json, ParsedTask.class);
+    private DeserializedTask parseJsonObject(String json){
+        return gson.fromJson(json, DeserializedTask.class);
     }
 
-    private LocalDate parseDate(int date){
-        return parseDate(String.valueOf(date));
-    }
-
-    private LocalDate parseDate(String date){
-        return LocalDate.parse(date, DateTimeFormatter.BASIC_ISO_DATE);
-    }
-
-    private LocalTime parseTime(double time){
-        int hour = (int) time;
-        int minute = (int) ((time - hour) * 60);
-
-        return LocalTime.of(hour, minute);
-    }
-
-    private TemporalAmount parseDuration(double duration){
-        long hours = (long) duration;
-        long minutes = (long) ((duration - hours) * 60);
-
-        return Duration.ofHours(hours).plusMinutes(minutes);
-    }
-
-
-
-
-    public static class ParsedTask {
+    private static class DeserializedTask {
 
         @SerializedName("Name")
         private String name;
@@ -137,7 +109,7 @@ public class TaskTypeDeserializer implements TaskDeserializer {
         @SerializedName("Frequency")
         private int frequency;
 
-        private ParsedTask(){}
+        private DeserializedTask(){}
 
         public String getName() {
             return name;
@@ -154,7 +126,6 @@ public class TaskTypeDeserializer implements TaskDeserializer {
         public void setType(String type) {
             this.type = type;
         }
-
 
         public int getDate() {
             return date;

@@ -39,6 +39,12 @@ public class TransientTask extends NonRecurringTask implements Task {
 
     @Override
     public String toString(){
+        return prettyToString(ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE));
+    }
+
+    /*
+    @Override
+    public String toString(){
         return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
                 .append("Name", name)
                 .append("Type", type)
@@ -50,5 +56,7 @@ public class TransientTask extends NonRecurringTask implements Task {
                 .replace("}", "\n}")
                 .replace(",", ",\n");
     }
+
+     */
 
 }

@@ -94,6 +94,12 @@ public abstract class AbstractTask implements Task, Comparable<Task> {
         return cd;
     }
 
+    protected final String prettyToString(String s){
+        return s.replace("{", "{\n")
+                .replace("}", "\n}")
+                .replace(",", ",\n");
+    }
+
     protected final int parseDateToInteger(LocalDate date){
         return Integer.parseInt(date.format(DateTimeFormatter.BASIC_ISO_DATE));
     }

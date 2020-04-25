@@ -13,7 +13,9 @@ import com.edu.cpp.cs.cs3560.model.tasks.recurring.Frequency;
 import com.edu.cpp.cs.cs3560.model.tasks.recurring.RecurringTask;
 import com.edu.cpp.cs.cs3560.model.tasks.recurring.RecurringTransientTask;
 import com.edu.cpp.cs.cs3560.model.tasks.trans.TransientTask;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+
 
 import java.lang.reflect.Type;
 import java.time.LocalDate;
@@ -28,79 +30,68 @@ import java.util.stream.Collectors;
 
 
 public class TaskModelManager implements TaskManager {
-    private final Map<String, Task> cache = new HashMap<>();
+    private static final String TASK_ALREADY_EXISTS_ERROR_MESSAGE_FORMAT = "Task [%s] already exists.";
+    private static final String NO_SUCH_TASK_ERROR_MESSAGE_FORMAT = "Task [%s] does not exists.";
 
-    private final Multimap<String, Task> tasks;
+    private final Map<String, Task> tasks = new HashMap<>();
+
+    private final Multimap<String, Task> schedule = HashMultimap.create();
 
 
     public TaskModelManager(Multimap<String, Task> multimap){
-        this.tasks = multimap;
-    }
-
-    @Override
-    public Task createTask(Map<String, Object> data){
-        Task task = parseTask(data.entrySet().stream().collect(Collectors.toMap(Entry::getKey, String::valueOf)));
-
-        addTask(task);
-
-        return task;
-    }
-
-    private Task parseTask(Map<String, String> data){
-        String name = data.get("Name");
-        String type = data.get("Type");
-        LocalDate date = TaskParser.parseDate(data.getOrDefault("Date", data.get("StartDate")));
-        LocalTime startTime = TaskParser.parseTime(data.get("StartTime"));
-        TemporalAmount duration = TaskParser.parseDuration(data.get("Duration"));
-
-        Type ptype = TaskTypes.getTaskType(type);
-        if(ptype == TransientTasks.class){
-            return new TransientTask(name, type, date, startTime, duration);
-        } else if (ptype == AntiTasks.class){
-            return new AntiTask(name, type, date, startTime, duration);
-        } else if(ptype == RecurringTasks.class){
-            LocalDate endDate = TaskParser.parseDate(data.get("EndDate"));
-            Frequency frequency = Frequency.getFrequency(Integer.parseInt(data.get("Frequency")));
-
-            return new RecurringTask(name, type, date, startTime, duration, endDate, frequency);
-        } else {
-            throw new IllegalArgumentException();
-        }
+        //this.schedule = multimap;
     }
 
     @Override
     public Task getTask(String name){
-        return cache.get(name);
+        if(tasks.containsKey(name)){
+            throw new TaskManagerException(String.format(NO_SUCH_TASK_ERROR_MESSAGE_FORMAT, name));
+        }
+
+        return tasks.get(name);
     }
 
     @Override
     public List<Task> getTasks(String name){
-        return new ArrayList<>(tasks.get(name));
+        //return new ArrayList<>(schedule.get(name));
+        return new ArrayList<>();
+    }
+
+    public void addTask(Map<String, Object> data){
+        addTask(parseTask(data));
     }
 
     @Override
     public void addTask(Task task){
-        if(task instanceof TransientTask){
-            addTransientTask((TransientTask) task);
-        } else if (task instanceof AntiTask){
-            addAntiTask((AntiTask) task);
-        } else if(task instanceof RecurringTask){
-            addRecurringTask((RecurringTask) task);
-        } else {
-            throw new IllegalArgumentException();
-        }
+        try {
+            if (task instanceof TransientTask) {
+                addTransientTask((TransientTask) task);
+            } else if (task instanceof AntiTask) {
+                addAntiTask((AntiTask) task);
+            } else if (task instanceof RecurringTask) {
+                addRecurringTask((RecurringTask) task);
+            } else {
+                throw new IllegalArgumentException("Invalid Task Type");
+            }
 
-        cache.put(task.getName(), task);
+            tasks.put(task.getName(), task);
+        } catch (RuntimeException e){
+            throw new TaskManagerException(String.format("There was a problem adding task [%s]", task.getName()));
+        }
     }
 
     public void addTransientTask(TransientTask task){
         validate(task);
-        tasks.put(task.getName(), task);
+        schedule.put(task.getName(), task);
     }
 
-    public void addAntiTask(AntiTask task){
-        TaskValidator.validateTaskMatchingDateTime(task, tasks.values());
-        tasks.values().removeIf(t -> TaskValidator.getInstance().checkForMatchingDateTime(task, t));
+    public void addAntiTask(AntiTask antiTask){
+        try {
+            TaskValidator.validateTaskMatchingDateTime(antiTask, schedule.values());
+        } catch (RuntimeException e){
+            throw new TaskManagerException(e);
+        }
+        schedule.values().removeIf(t -> TaskValidator.getInstance().checkForMatchingDateTime(antiTask, t));
     }
 
     public void addRecurringTask(RecurringTask recurring){
@@ -126,35 +117,41 @@ public class TaskModelManager implements TaskManager {
             date = date.plus(1, frequency.getUnit());
         }
 
-        tasks.putAll(name, recurringTasks);
+        schedule.putAll(name, recurringTasks);
     }
 
     @Override
     public boolean taskExists(String name){
-        return cache.containsKey(name);
+        return tasks.containsKey(name);
     }
 
     @Override
     public List<Task> getTasks(){
-        return new ArrayList<>(cache.values());
-    }
-
-    @Override
-    public List<Task> getAllTasks(){
         return new ArrayList<>(tasks.values());
     }
 
     @Override
-    public Task removeTask(String name){
-        tasks.removeAll(name);
-        return cache.remove(name);
+    public List<Task> getAllTasks(){
+        return new ArrayList<>(schedule.values());
     }
 
-    private Task replaceTask(String original, Task replacement){
-        Task og = removeTask(original);
-        addTask(replacement);
+    @Override
+    public Task removeTask(String name){
+        if(tasks.containsKey(name)){
+            throw new TaskManagerException(String.format(NO_SUCH_TASK_ERROR_MESSAGE_FORMAT, name));
+        }
 
-        return og;
+        schedule.removeAll(name);
+        return tasks.remove(name);
+    }
+
+    public Task removeTask(Task task){
+
+
+
+
+
+        return null;
     }
 
     @Override
@@ -198,14 +195,52 @@ public class TaskModelManager implements TaskManager {
 
     }
 
-    private void validate(Task task){
-        if(cache.containsKey(task.getName()) || tasks.containsKey(task.getName())){
-            throw new RuntimeException("Task Already Exists");
+    private Task replaceTask(String original, Task replacement){
+        Task og = removeTask(original);
+        addTask(replacement);
+
+        return og;
+    }
+
+    private void validateUniqueness(Task task){
+        if(tasks.containsKey(task.getName()) || schedule.containsKey(task.getName())){
+            throw new TaskManagerException(String.format(TASK_ALREADY_EXISTS_ERROR_MESSAGE_FORMAT, task.getName()));
         }
+    }
 
-        TaskValidator.validateTaskTypeSupported(task);
+    private void validate(Task task){
+        try {
+            TaskValidator.validateTaskTypeSupported(task);
+            TaskValidator.validateNoTaskOverlap(task, schedule.values());
+        } catch (RuntimeException e){
+            throw new TaskManagerException(e);
+        }
+    }
 
-        TaskValidator.validateNoTaskOverlap(task, tasks.values());
+    private Task parseTask(Map<String, Object> data){
+        return parseTaskData(data.entrySet().stream().collect(Collectors.toMap(Entry::getKey, String::valueOf)));
+    }
+
+    private Task parseTaskData(Map<String, String> data){
+        String name = data.get("Name");
+        String type = data.get("Type");
+        LocalDate date = TaskParser.parseDate(data.getOrDefault("Date", data.get("StartDate")));
+        LocalTime startTime = TaskParser.parseTime(data.get("StartTime"));
+        TemporalAmount duration = TaskParser.parseDuration(data.get("Duration"));
+
+        Type ptype = TaskTypes.getTaskType(type);
+        if(ptype == TransientTasks.class){
+            return new TransientTask(name, type, date, startTime, duration);
+        } else if (ptype == AntiTasks.class){
+            return new AntiTask(name, type, date, startTime, duration);
+        } else if(ptype == RecurringTasks.class){
+            LocalDate endDate = TaskParser.parseDate(data.get("EndDate"));
+            Frequency frequency = Frequency.getFrequency(Integer.parseInt(data.get("Frequency")));
+
+            return new RecurringTask(name, type, date, startTime, duration, endDate, frequency);
+        } else {
+            throw new IllegalArgumentException("Invalid Task Type");
+        }
     }
 
 }

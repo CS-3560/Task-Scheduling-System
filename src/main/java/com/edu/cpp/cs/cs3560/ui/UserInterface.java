@@ -16,4 +16,6 @@ public interface UserInterface {
 
     Map<String, String> getInput(String p, String ...s);
 
+    void displayError(String s);
+
 }

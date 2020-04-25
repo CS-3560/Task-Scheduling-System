@@ -1,5 +1,7 @@
 package com.edu.cpp.cs.cs3560.ui;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -21,7 +23,7 @@ public class TextUserInterface implements UserInterface {
 
 
     public String getInput() {
-        return input.next().trim();
+        return StringUtils.defaultString(input.next()).trim();
     }
 
 
@@ -47,6 +49,11 @@ public class TextUserInterface implements UserInterface {
         }
 
         return Collections.unmodifiableMap(inputs);
+    }
+
+    @Override
+    public void displayError(String s){
+        System.err.println(s);
     }
 
 }

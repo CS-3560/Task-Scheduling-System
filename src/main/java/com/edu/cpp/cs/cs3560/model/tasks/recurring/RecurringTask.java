@@ -8,19 +8,17 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.time.Duration;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
 
 public class RecurringTask extends AbstractTask implements Task {
 
-    @SerializedName("StartDate")
-    protected LocalDate startDate;
-    protected LocalDate endDate;
-    protected Frequency frequency;
+    protected transient LocalDate startDate;
+    protected transient LocalDate endDate;
+    protected transient Frequency frequency;
 
     public RecurringTask(){}
 
@@ -101,6 +99,12 @@ public class RecurringTask extends AbstractTask implements Task {
 
     @Override
     public String toString(){
+        return prettyToString(ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE));
+    }
+
+    /*
+    @Override
+    public String toString(){
         return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
                 .append("Name", name)
                 .append("Type", type)
@@ -114,6 +118,7 @@ public class RecurringTask extends AbstractTask implements Task {
                 .replace("}", "\n}")
                 .replace(",", ",\n");
     }
+     */
 
 
     @Override

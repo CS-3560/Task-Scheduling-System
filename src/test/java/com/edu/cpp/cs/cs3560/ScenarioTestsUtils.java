@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.List;
 
 public final class ScenarioTestsUtils {
-    private static final TaskParser parser = TaskParser.getInstance();
 
     private ScenarioTestsUtils(){
         throw new UnsupportedOperationException();
@@ -24,7 +23,7 @@ public final class ScenarioTestsUtils {
             double startTime,
             double duration
     ){
-        return new TransientTask(name, type, parser.parseDate(date), parser.parseTime(startTime), parser.parseDuration(duration));
+        return new TransientTask(name, type, TaskParser.parseDate(date), TaskParser.parseTime(startTime), TaskParser.parseDuration(duration));
     }
 
     public static AntiTask createAntiTask(
@@ -34,7 +33,7 @@ public final class ScenarioTestsUtils {
             double startTime,
             double duration
     ){
-        return new AntiTask(name, type, parser.parseDate(date), parser.parseTime(startTime), parser.parseDuration(duration));
+        return new AntiTask(name, type, TaskParser.parseDate(date), TaskParser.parseTime(startTime), TaskParser.parseDuration(duration));
     }
 
     public static RecurringTask createRecurringTask(
@@ -46,11 +45,12 @@ public final class ScenarioTestsUtils {
             int endDate,
             int frequency
     ){
-        return new RecurringTask(name, type, parser.parseDate(startDate), parser.parseTime(startTime), parser.parseDuration(duration), parser.parseDate(endDate), Frequency.getFrequency(frequency));
+        return new RecurringTask(name, type, TaskParser.parseDate(startDate), TaskParser.parseTime(startTime), TaskParser.parseDuration(duration), TaskParser.parseDate(endDate), Frequency.getFrequency(frequency));
     }
 
     public static List<Task> parseFile(String file) throws IOException {
-        return parser.parseTasks(parser.parseFile(file));
+        return null;
+        //return parser.parseTasks(parser.parseFile(file));
     }
 
 }

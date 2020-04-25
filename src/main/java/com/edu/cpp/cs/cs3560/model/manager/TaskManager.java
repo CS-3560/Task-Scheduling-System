@@ -7,11 +7,11 @@ import java.util.Map;
 
 public interface TaskManager {
 
-    Task createTask(Map<String, Object> info);
-
     Task getTask(String name);
 
     List<Task> getTasks(String name);
+
+    void addTask(Map<String, Object> data);
 
     void addTask(Task task);
 

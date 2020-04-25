@@ -6,7 +6,6 @@ import com.edu.cpp.cs.cs3560.model.types.PSSOperation;
 import com.edu.cpp.cs.cs3560.model.types.PSSOperation.PSSOperationType;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes;
 import com.edu.cpp.cs.cs3560.ui.UserInterface;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,7 +18,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class TaskView {
 
@@ -49,39 +50,35 @@ public class TaskView {
 
     private static final String READ_FROM_FILE_PSS_OPERATION = "Read the schedule from a file";
 
+    private static final String WHOLE_SCHEDULE_PSS_OPERATION = "View the schedule";
+
     private static final String DAY_SCHEDULE_PSS_OPERATION = "View or write the schedule for one day";
 
     private static final String WEEK_SCHEDULE_PSS_OPERATION = "View or write the schedule for one week";
 
     private static final String MONTH_SCHEDULE_PSS_OPERATION = "View or write the schedule for one month";
 
-    private static final String PSS_OPERATION_OPTIONS = "Operation options:" +
-            "\n\t1.\t" + CREATE_TASK_PSS_OPERATION +
-            "\n\t2.\t" + VIEW_TASK_PSS_OPERATION +
-            "\n\t3.\t" + DELETE_TASK_PSS_OPERATION +
-            "\n\t4.\t" + EDIT_TASK_PSS_OPERATION +
-            "\n\t5.\t" + WRITE_TO_FILE_PSS_OPERATION +
-            "\n\t6.\t" + READ_FROM_FILE_PSS_OPERATION +
-            "\n\t7.\t" + DAY_SCHEDULE_PSS_OPERATION +
-            "\n\t8.\t" + WEEK_SCHEDULE_PSS_OPERATION +
-            "\n\t9.\t" + MONTH_SCHEDULE_PSS_OPERATION +
-            "\n\nEnter operation to perform: ";
+    private static final String EXECUTE_INSTRUCTIONS_FROM_FILE = "Execute instructions from a file";
 
     private static final String[] EXIT_FLAGS = {"QUIT", "Q"};
 
     private static final String[] DONE_FLAGS = {"DONE", "D"};
 
-    private static final Map<Integer, String> operations = Map.of(
-            1, CREATE_TASK_PSS_OPERATION,
-            2, VIEW_TASK_PSS_OPERATION,
-            3, DELETE_TASK_PSS_OPERATION,
-            4, EDIT_TASK_PSS_OPERATION,
-            5, WRITE_TO_FILE_PSS_OPERATION,
-            6, READ_FROM_FILE_PSS_OPERATION,
-            7, DAY_SCHEDULE_PSS_OPERATION,
-            8, WEEK_SCHEDULE_PSS_OPERATION,
-            9, MONTH_SCHEDULE_PSS_OPERATION
+    private static final Map<Integer, String> OPERATIONS = Map.ofEntries(
+            Map.entry(1, CREATE_TASK_PSS_OPERATION),
+            Map.entry(2, VIEW_TASK_PSS_OPERATION),
+            Map.entry(3, DELETE_TASK_PSS_OPERATION),
+            Map.entry(4, EDIT_TASK_PSS_OPERATION),
+            Map.entry(5, WRITE_TO_FILE_PSS_OPERATION),
+            Map.entry(6, READ_FROM_FILE_PSS_OPERATION),
+            Map.entry(7, WHOLE_SCHEDULE_PSS_OPERATION),
+            Map.entry(8, DAY_SCHEDULE_PSS_OPERATION),
+            Map.entry(9, WEEK_SCHEDULE_PSS_OPERATION),
+            Map.entry(10, MONTH_SCHEDULE_PSS_OPERATION),
+            Map.entry(11, EXECUTE_INSTRUCTIONS_FROM_FILE)
     );
+
+    private static final String PSS_OPERATION_OPTIONS_MENU = generateMenu();
 
     private static final Gson gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
@@ -100,21 +97,26 @@ public class TaskView {
         return ui.getInput(prompt);
     }
 
-   public PSSOperation getOperation(){
-       Set<String> options = ImmutableSet.copyOf(operations.values());
+    public PSSOperation getOperation(){
+       Collection<String> options = getValidOperations();
 
         String operation;
         do {
-            String input = ui.getInput(PSS_OPERATION_OPTIONS);
+            String input = ui.getInput(PSS_OPERATION_OPTIONS_MENU);
 
-            operation = NumberUtils.isDigits(input) ? operations.get(Integer.parseInt(input)) : input;
-            if(options.contains(operation)){
+            operation = parseOptionInput(input);
+
+            if(StringUtils.equalsAnyIgnoreCase(operation, EXIT_FLAGS)){
+                return PSSOperation.builder().withType(PSSOperationType.QUIT).create();
+            }
+
+            if(!options.contains(operation)){
                 ui.displayln(INVALID_INPUT_ERROR_MESSAGE);
             }
         } while(!options.contains(operation));
 
         PSSOperation.Builder builder = PSSOperation.builder();
-        if(StringUtils.equalsAny(operation, CREATE_TASK_PSS_OPERATION, VIEW_TASK_PSS_OPERATION, DELETE_TASK_PSS_OPERATION, EDIT_TASK_PSS_OPERATION)){
+        if(StringUtils.equalsAnyIgnoreCase(operation, CREATE_TASK_PSS_OPERATION, VIEW_TASK_PSS_OPERATION, DELETE_TASK_PSS_OPERATION, EDIT_TASK_PSS_OPERATION)){
             switch (operation) {
                 case CREATE_TASK_PSS_OPERATION:
                     builder.withType(PSSOperationType.CREATE_TASK);
@@ -133,21 +135,18 @@ public class TaskView {
             }
 
             builder.withData(builder.getType() == PSSOperationType.CREATE_TASK ? getTaskInfo() : getTaskName());
-        } else if(StringUtils.equalsAny(operation, READ_FROM_FILE_PSS_OPERATION, WRITE_TO_FILE_PSS_OPERATION)){
-            String iio;
-            do{
-                iio = ui.getInput("[Read] from file or [Write] to file?");
-                if(iio.equalsIgnoreCase(READ_OPTION)){
-                    builder.withType(PSSOperationType.READ_FROM_FILE);
-                } else if(iio.equalsIgnoreCase(WRITE_OPTION)){
-                    builder.withType(PSSOperationType.WRITE_TO_FILE);
-                } else {
-                    ui.displayln(INVALID_INPUT_ERROR_MESSAGE);
-                }
-            } while(!StringUtils.equalsAnyIgnoreCase(iio, READ_OPTION, WRITE_OPTION));
-            builder.withData(getFileInfo());
-        } else if(StringUtils.equalsAny(operation, DAY_SCHEDULE_PSS_OPERATION, WEEK_SCHEDULE_PSS_OPERATION, MONTH_SCHEDULE_PSS_OPERATION)){
-            Map<String, Object> data = getScheduleInfo();
+        } else if(StringUtils.equalsAnyIgnoreCase(operation, READ_FROM_FILE_PSS_OPERATION, WRITE_TO_FILE_PSS_OPERATION)){
+            builder.withType(
+                    operation.equalsIgnoreCase(READ_FROM_FILE_PSS_OPERATION)
+                            ? PSSOperationType.READ_FROM_FILE
+                            : PSSOperationType.WRITE_TO_FILE
+            ).withData(getFileInfo());
+        } else if(StringUtils.equalsIgnoreCase(operation, WHOLE_SCHEDULE_PSS_OPERATION)){
+            builder.withType(PSSOperationType.VIEW_SCHEDULE).withData("Operation", "VIEW").withData("Type", "WHOLE");
+        } else if(StringUtils.equalsIgnoreCase(operation, EXECUTE_INSTRUCTIONS_FROM_FILE)){
+            builder.withType(PSSOperationType.EXECUTE_INSTRUCTIONS).withData(getFileInfo());
+        } else if(StringUtils.equalsAnyIgnoreCase(operation, DAY_SCHEDULE_PSS_OPERATION, WEEK_SCHEDULE_PSS_OPERATION, MONTH_SCHEDULE_PSS_OPERATION)){
+            Map<String, Object> data = getScheduleInfo(operation);
 
             Object op = data.get("Operation");
             if(op.equals("VIEW")){
@@ -158,6 +157,8 @@ public class TaskView {
                 throw new RuntimeException(INVALID_INPUT_ERROR_MESSAGE);
             }
             builder.withData(data);
+        } else if(StringUtils.equalsAnyIgnoreCase(operation, EXIT_FLAGS)){
+            builder.withType(PSSOperationType.QUIT);
         } else {
             throw new RuntimeException(INVALID_INPUT_ERROR_MESSAGE);
         }
@@ -209,7 +210,7 @@ public class TaskView {
         String input;
         do {
             ui.displayln(options);
-            input = ui.getInput("Which field to update? (Enter 'D' or 'Done' to finish):\t");
+            input = ui.getInput("Which field to update? (Enter 'D' or 'Done' to finish): ");
             try {
                 String key = NumberUtils.isParsable(input) ? keys.get(Integer.parseInt(input) - 1) : input;
                 if(!updated.containsKey(key)){
@@ -234,22 +235,8 @@ public class TaskView {
         return Map.of("File", ui.getInput(FILE_PATH_PROMPT));
     }
 
-    private Map<String, Object> getScheduleInfo(){
+    private Map<String, Object> getScheduleInfo(String input){
         Map<String, Object> options = new LinkedHashMap<>();
-
-        String type;
-        do{
-            type = ui.getInput("What kind of schedule? ([Daily, Weekly, Monthly])");
-            if(type.equalsIgnoreCase("DAILY")){
-                options.put("Type", "DAILY");
-            } else if(type.equalsIgnoreCase("WEEKLY")){
-                options.put("Type", "WEEKLY");
-            } else if(type.equalsIgnoreCase("MONTHLY")){
-                options.put("Type", "MONTHLY");
-            } else {
-                ui.displayln(INVALID_INPUT_ERROR_MESSAGE);
-            }
-        } while(!StringUtils.equalsAnyIgnoreCase(type, "Daily", "Weekly, Monthly"));
 
         String operation;
         do{
@@ -262,9 +249,22 @@ public class TaskView {
             } else {
                 ui.displayln(INVALID_INPUT_ERROR_MESSAGE);
             }
-        } while(!StringUtils.equalsAnyIgnoreCase("View", "Write"));
+        } while(!StringUtils.equalsAnyIgnoreCase(operation, "View", "Write"));
 
-        options.put("Start", ui.getInput("Enter Date: "));
+        options.put("StartDate", ui.getInput("Enter Start Date [yyyyMMdd]: "));
+
+        String type;
+        if(input.equalsIgnoreCase(DAY_SCHEDULE_PSS_OPERATION)){
+            type = "DAY";
+        } else if(input.equalsIgnoreCase(WEEK_SCHEDULE_PSS_OPERATION)){
+            type = "WEEK";
+        } else if(input.equalsIgnoreCase(MONTH_SCHEDULE_PSS_OPERATION)){
+            type = "MONTH";
+        } else {
+            throw new RuntimeException(INVALID_INPUT_ERROR_MESSAGE);
+        }
+
+        options.put("Type", type);
 
         return options;
     }
@@ -302,6 +302,30 @@ public class TaskView {
         }
 
         return sb.toString();
+    }
+
+    private String parseOptionInput(String input){
+        return (NumberUtils.isDigits(input) ? OPERATIONS.get(Integer.parseInt(input)) : input).toUpperCase();
+    }
+
+    private Collection<String> getValidOperations(){
+        return OPERATIONS.values().stream().map(String::toUpperCase).collect(Collectors.toSet());
+    }
+
+    public void displayError(String message){
+        ui.displayError(message);
+    }
+
+    private static String generateMenu(){
+        StringBuilder sb = new StringBuilder("\nOperation options:");
+
+        SortedSet<Integer> keys = new TreeSet<>(OPERATIONS.keySet());
+        for(int key : keys){
+            sb.append(String.format("\n\t%s. %s", StringUtils.leftPad(String.valueOf(key), 2), OPERATIONS.get(key)));
+        }
+
+
+        return sb.append("\n\nEnter operation to perform: ").toString();
     }
 
 }

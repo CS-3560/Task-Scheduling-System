@@ -9,7 +9,6 @@ import java.util.Collection;
 public class TaskValidator {
     private static final TaskValidator validator = new TaskValidator();
 
-
     private TaskValidator(){}
 
     public static TaskValidator getInstance(){

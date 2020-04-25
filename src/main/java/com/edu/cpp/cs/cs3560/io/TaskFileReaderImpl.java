@@ -11,6 +11,9 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class TaskFileReaderImpl implements TaskFileReader {
+    private static final String IO_ERROR_MESSAGE_FORMAT = "There was an issue reading file in path [%s]. " +
+                                                            "Please make sure path is correct and the file exists.";
+
     private final TaskDeserializer deserializer;
 
     public TaskFileReaderImpl(TaskDeserializer deserializer) {
@@ -19,12 +22,20 @@ public class TaskFileReaderImpl implements TaskFileReader {
 
     @Override
     public List<Task> read(String file) throws IOException {
-        return deserializer.deserialize(new String(Files.readAllBytes(Paths.get(file))));
+        try {
+            return deserializer.deserialize(new String(Files.readAllBytes(Paths.get(file))));
+        } catch (IOException e){
+            throw new IOException(String.format(IO_ERROR_MESSAGE_FORMAT, file), e);
+        }
     }
 
     @Override
     public List<Task> read(File file) throws IOException {
-        return deserializer.deserialize(FileUtils.readFileToString(file, "UTF-8"));
+        try {
+            return deserializer.deserialize(FileUtils.readFileToString(file, "UTF-8"));
+        } catch (IOException e){
+            throw new IOException(String.format(IO_ERROR_MESSAGE_FORMAT, file.getName()), e);
+        }
     }
 
 }

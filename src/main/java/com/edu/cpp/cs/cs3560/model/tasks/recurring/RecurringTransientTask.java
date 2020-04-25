@@ -1,6 +1,7 @@
 package com.edu.cpp.cs.cs3560.model.tasks.recurring;
 
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
+import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -10,7 +11,9 @@ import java.time.LocalTime;
 import java.time.temporal.TemporalAmount;
 
 public class RecurringTransientTask extends RecurringTask implements Task {
-    private transient LocalDate date;
+
+    @SerializedName("Date")
+    private LocalDate date;
 
     public RecurringTransientTask(
             String name,
@@ -36,6 +39,12 @@ public class RecurringTransientTask extends RecurringTask implements Task {
 
     @Override
     public String toString(){
+        return prettyToString(ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE));
+    }
+
+    /*
+    @Override
+    public String toString(){
         return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
                 .append("Name", name)
                 .append("Type", type)
@@ -50,6 +59,8 @@ public class RecurringTransientTask extends RecurringTask implements Task {
                 .replace("}", "\n}")
                 .replace(",", ",\n");
     }
+
+     */
 
     @Override
     public LocalDateTime getDateTime(){

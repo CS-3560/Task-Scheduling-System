@@ -63,7 +63,7 @@ public class PSSOperation {
         }
 
         public Builder withData(String key, Object value){
-            addData(key, data);
+            addData(key, value);
             return this;
         }
 
@@ -87,6 +87,7 @@ public class PSSOperation {
         READ_FROM_FILE,
         VIEW_SCHEDULE,
         WRITE_SCHEDULE,
+        EXECUTE_INSTRUCTIONS,
         QUIT
 
     }

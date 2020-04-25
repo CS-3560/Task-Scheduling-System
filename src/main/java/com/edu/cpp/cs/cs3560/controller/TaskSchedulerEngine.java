@@ -30,6 +30,8 @@ public class TaskSchedulerEngine {
         this.reader = reader;
         this.writer = writer;
         this.view = view;
+
+        readFromFile("Users/bryanayala/Desktop/Homework4/Set1.json").forEach(manager::addTask);
     }
 
 
@@ -63,6 +65,7 @@ public class TaskSchedulerEngine {
                     schedule(data);
                     break;
                 case QUIT:
+                    System.exit(0);
                     break;
                 default:
                     throw new RuntimeException();
@@ -75,15 +78,27 @@ public class TaskSchedulerEngine {
 
 
     private void createTask(Map<String, Object> data){
-        manager.createTask(data);
+        try {
+            manager.addTask(data);
+        } catch (RuntimeException e){
+            view.displayError(String.format("There was an error creating the taskL %s", e.getMessage()));
+        }
     }
 
     private void viewTask(Map<String, Object> data){
-        view.displayTask(manager.getTask(String.valueOf(data.get("Name"))));
+        try {
+            view.displayTask(manager.getTask(String.valueOf(data.get("Name"))));
+        } catch (RuntimeException e){
+            view.displayError(String.format("There was an error when viewing the task: %s", e.getMessage()));
+        }
     }
 
     private void deleteTask(Map<String, Object> data){
-        view.displayTask(manager.removeTask(String.valueOf(data.get("Name"))));
+        try {
+            view.displayTask(manager.removeTask(String.valueOf(data.get("Name"))));
+        } catch (RuntimeException e){
+            view.displayError(String.format("There was an error when deleting the task: %s", e.getMessage()));
+        }
     }
 
     private void updateTask(Map<String, Object> data){
@@ -91,15 +106,21 @@ public class TaskSchedulerEngine {
     }
 
     private void schedule(Map<String, Object> data){
-        List<Task> schedule = getSchedule(data);
+        try {
+            List<Task> schedule = getSchedule(data);
 
-        Object operation = data.get("Operation");
-        if(Objects.equals(operation, "VIEW")){
-            view.displayTasks(schedule);
-        } else if (Objects.equals(operation, "WRITE")){
-            writeToFile(String.valueOf(data.get("File")), schedule);
-        } else {
-            throw new RuntimeException();
+            Collections.sort(schedule);
+
+            Object operation = data.get("Operation");
+            if (Objects.equals(operation, "VIEW")) {
+                view.displayTasks(schedule);
+            } else if (Objects.equals(operation, "WRITE")) {
+                writeToFile(String.valueOf(data.get("File")), schedule);
+            } else {
+                throw new RuntimeException(String.format("Invalid operation [%s]", operation.toString()));
+            }
+        } catch (RuntimeException e){
+            view.displayError(String.format("There was a problem with getting the schedule: %s", e.getMessage()));
         }
     }
 
@@ -110,39 +131,51 @@ public class TaskSchedulerEngine {
     private List<Task> readFromFile(String file){
         try {
             return reader.read(file);
-        } catch (IOException e) {
-            throw new RuntimeException();
+        } catch (IOException e){
+            view.displayError(e.getMessage());
         }
+
+        return Collections.emptyList();
     }
 
     private void writeToFile(Map<String, Object> data){
-        writeToFile(String.valueOf(data.get("File")), manager.getAllTasks());
+        List<Task> tasks = manager.getAllTasks();
+        Collections.sort(tasks);
+
+        writeToFile(String.valueOf(data.get("File")), tasks);
     }
 
     private void writeToFile(String file, Collection<Task> tasks){
         try {
             writer.write(file, tasks);
         } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
+            view.displayError(e.getMessage());
         }
     }
 
     private List<Task> getSchedule(Map<String, Object> data){
-        Object type = data.get("Type");
+        try {
+            Object type = data.get("Type");
+            if (type.equals("WHOLE")) {
+                return manager.getAllTasks();
+            }
 
-        LocalDateTime start = TaskParser.parseDate(String.valueOf(data.get("Start"))).atStartOfDay();
-        LocalDateTime end;
-        if(type.equals("DAILY")){
-            end = start.plusDays(1);
-        } else if(type.equals("WEEKLY")){
-            end = start.plusWeeks(1);
-        } else if(type.equals("MONTHLY")){
-            end = start.minusMonths(1);
-        } else {
-            throw new RuntimeException();
+            LocalDateTime start = TaskParser.parseDate(String.valueOf(data.get("StartDate"))).atStartOfDay();
+            LocalDateTime end;
+            if (type.equals("DAY")) {
+                end = start.plusDays(1);
+            } else if (type.equals("WEEK")) {
+                end = start.plusWeeks(1);
+            } else if (type.equals("MONTH")) {
+                end = start.plusMonths(1);
+            } else {
+                throw new RuntimeException(String.format("Invalid schedule type [%s]", type.toString()));
+            }
+
+            return getSchedule(start, end);
+        } catch (RuntimeException e){
+            throw new RuntimeException(String.format("There was a problem with getting the schedule [%s]", e.getMessage()), e);
         }
-
-        return getSchedule(start, end);
     }
 
     private List<Task> getSchedule(LocalDateTime start, LocalDateTime end){
@@ -156,8 +189,6 @@ public class TaskSchedulerEngine {
             }
 
         }
-
-        Collections.sort(schedule);
 
         return schedule;
     }

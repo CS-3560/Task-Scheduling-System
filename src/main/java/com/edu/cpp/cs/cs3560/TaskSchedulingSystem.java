@@ -18,7 +18,7 @@ import com.edu.cpp.cs.cs3560.view.TaskView;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
-public class TaskSchedulingSystem {
+public final class TaskSchedulingSystem {
 
     public static void main(String ...args) {
         TaskSerializer serializer = new TaskTypeSerializer();
@@ -32,6 +32,7 @@ public class TaskSchedulingSystem {
         TaskView view = new TaskView(ui, serializer);
 
         Multimap<String, Task> taskMultimap = ArrayListMultimap.create();
+
 
         TaskManager manager = new TaskModelManager(taskMultimap);
 
