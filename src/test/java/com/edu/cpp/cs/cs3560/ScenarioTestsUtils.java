@@ -1,6 +1,6 @@
 package com.edu.cpp.cs.cs3560;
 
-import com.edu.cpp.cs.cs3560.io.tasks.TaskParser;
+import com.edu.cpp.cs.cs3560.util.TaskParser;
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import com.edu.cpp.cs.cs3560.model.tasks.anti.AntiTask;
 import com.edu.cpp.cs.cs3560.model.tasks.recurring.Frequency;

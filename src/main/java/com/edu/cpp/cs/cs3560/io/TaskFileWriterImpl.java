@@ -1,6 +1,6 @@
 package com.edu.cpp.cs.cs3560.io;
 
-import com.edu.cpp.cs.cs3560.io.tasks.TaskSerializer;
+import com.edu.cpp.cs.cs3560.util.TaskSerializer;
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 
 import java.io.File;

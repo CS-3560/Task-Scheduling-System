@@ -1,6 +1,6 @@
 package com.edu.cpp.cs.cs3560.io;
 
-import com.edu.cpp.cs.cs3560.io.tasks.TaskDeserializer;
+import com.edu.cpp.cs.cs3560.util.TaskDeserializer;
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import org.apache.commons.io.FileUtils;
 

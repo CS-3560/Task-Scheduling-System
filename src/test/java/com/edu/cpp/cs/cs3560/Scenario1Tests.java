@@ -11,6 +11,11 @@ import java.io.IOException;
 
 
 public class Scenario1Tests {
+
+    /*
+    These Tests are not implemented correctly, this is just a rough draft
+     */
+
     private static final String DELETE_TASK_NAME = "Intern Interview";
     private static final String INVALID_TASK_TYPE_MESSAGE = "Invalid Task Type";
     private static final String OVERLAP_ERROR_MESSAGE_1 = "Task [Watch a movie] overlaps with Task [CS3560-Th]";
@@ -40,7 +45,7 @@ public class Scenario1Tests {
             2
     );
 
-    private final TaskModelManager manager = new TaskModelManager(HashMultimap.create());
+    private final TaskModelManager manager = new TaskModelManager();
 
     @Before
     public void readSet1() throws IOException {

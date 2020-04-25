@@ -29,34 +29,41 @@ public class TransientTask extends NonRecurringTask implements Task {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        return EqualsBuilder.reflectionEquals(this, obj);
+
+        TransientTask other = (TransientTask) obj;
+        return new EqualsBuilder()
+                .append(name, other.name)
+                .append(type, other.type)
+                .append(date, other.date)
+                .append(startTime, other.startTime)
+                .append(duration, other.duration)
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+        return new HashCodeBuilder(17, 37)
+                .append(name)
+                .append(type)
+                .append(date)
+                .append(startTime)
+                .append(duration)
+                .toHashCode();
     }
+
 
     @Override
     public String toString(){
-        return prettyToString(ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE));
+        return prettyToString(
+                new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
+                        .append("Name", name)
+                        .append("Type", type)
+                        .append("Date", parseDateToInteger(date))
+                        .append("StartTime", parseTimeToDouble(startTime))
+                        .append("Duration", duration)
+                        .toString()
+        );
     }
 
-    /*
-    @Override
-    public String toString(){
-        return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
-                .append("Name", name)
-                .append("Type", type)
-                .append("Date", parseDateToInteger(date))
-                .append("StartTime", parseTimeToDouble(startTime))
-                .append("Duration", duration)
-                .toString()
-                .replace("{", "{\n")
-                .replace("}", "\n}")
-                .replace(",", ",\n");
-    }
-
-     */
 
 }

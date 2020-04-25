@@ -1,6 +1,6 @@
 package com.edu.cpp.cs.cs3560.model.manager;
 
-import com.edu.cpp.cs.cs3560.io.tasks.TaskParser;
+import com.edu.cpp.cs.cs3560.util.TaskParser;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes.AntiTasks;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes.RecurringTasks;
@@ -23,6 +23,7 @@ import java.time.LocalTime;
 import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,18 +34,13 @@ public class TaskModelManager implements TaskManager {
     private static final String TASK_ALREADY_EXISTS_ERROR_MESSAGE_FORMAT = "Task [%s] already exists.";
     private static final String NO_SUCH_TASK_ERROR_MESSAGE_FORMAT = "Task [%s] does not exists.";
 
-    private final Map<String, Task> tasks = new HashMap<>();
+    public final Map<String, Task> tasks = new HashMap<>();
+    private final Multimap<Task, Task> schedule = HashMultimap.create();
 
-    private final Multimap<String, Task> schedule = HashMultimap.create();
-
-
-    public TaskModelManager(Multimap<String, Task> multimap){
-        //this.schedule = multimap;
-    }
 
     @Override
     public Task getTask(String name){
-        if(tasks.containsKey(name)){
+        if(!tasks.containsKey(name)){
             throw new TaskManagerException(String.format(NO_SUCH_TASK_ERROR_MESSAGE_FORMAT, name));
         }
 
@@ -76,26 +72,39 @@ public class TaskModelManager implements TaskManager {
 
             tasks.put(task.getName(), task);
         } catch (RuntimeException e){
-            throw new TaskManagerException(String.format("There was a problem adding task [%s]", task.getName()));
+            throw new TaskManagerException(String.format("There was a problem adding task [%s]: %s", task.getName(), e.getCause().getMessage()));
         }
     }
 
     public void addTransientTask(TransientTask task){
         validate(task);
-        schedule.put(task.getName(), task);
+        schedule.put(task, task);
     }
 
     public void addAntiTask(AntiTask antiTask){
         try {
-            TaskValidator.validateTaskMatchingDateTime(antiTask, schedule.values());
+            TaskValidator.validateTaskMatchingDateTime(
+                    antiTask, schedule.values().stream()
+                            .filter(t -> t instanceof RecurringTransientTask)
+                            .collect(Collectors.toSet())
+            );
         } catch (RuntimeException e){
             throw new TaskManagerException(e);
         }
+
+        /*
+            AntiTasks only remove instances of Recurring tasks, it does not save the task it replaces
+            so when deleting an antitask, it doesn't add the recrurring instance back
+         */
+
+        //TODO: Save recurring instance being removed
+
         schedule.values().removeIf(t -> TaskValidator.getInstance().checkForMatchingDateTime(antiTask, t));
+        tasks.put(antiTask.getName(), antiTask);
     }
 
     public void addRecurringTask(RecurringTask recurring){
-        List<Task> recurringTasks = new ArrayList<>();
+        List<Task> recurringTasks = new LinkedList<>();
 
         String name = recurring.getName();
         String type = recurring.getType();
@@ -117,8 +126,10 @@ public class TaskModelManager implements TaskManager {
             date = date.plus(1, frequency.getUnit());
         }
 
-        schedule.putAll(name, recurringTasks);
+        schedule.putAll(recurring, recurringTasks);
     }
+
+
 
     @Override
     public boolean taskExists(String name){
@@ -137,25 +148,28 @@ public class TaskModelManager implements TaskManager {
 
     @Override
     public Task removeTask(String name){
-        if(tasks.containsKey(name)){
+        if(!tasks.containsKey(name)){
             throw new TaskManagerException(String.format(NO_SUCH_TASK_ERROR_MESSAGE_FORMAT, name));
         }
 
-        schedule.removeAll(name);
+        //TODO: Implement Removing AntiTask (Read the Lecture 15 slides)
+
+        schedule.removeAll(tasks.get(name));
         return tasks.remove(name);
     }
 
+    @Override
     public Task removeTask(Task task){
 
-
-
-
+        //TODO: Implement removing tasks according to slides (Read the Lecture 15 slides)
 
         return null;
     }
 
     @Override
     public void updateTask(Task task, Map<String, Object> updates){
+        //TODO: Implement this
+
         if(updates.containsKey("Type")){
             String updatedType = (String) updates.get("Type");
         }
@@ -203,7 +217,7 @@ public class TaskModelManager implements TaskManager {
     }
 
     private void validateUniqueness(Task task){
-        if(tasks.containsKey(task.getName()) || schedule.containsKey(task.getName())){
+        if(tasks.containsKey(task.getName()) || schedule.containsKey(task)){
             throw new TaskManagerException(String.format(TASK_ALREADY_EXISTS_ERROR_MESSAGE_FORMAT, task.getName()));
         }
     }
@@ -218,13 +232,13 @@ public class TaskModelManager implements TaskManager {
     }
 
     private Task parseTask(Map<String, Object> data){
-        return parseTaskData(data.entrySet().stream().collect(Collectors.toMap(Entry::getKey, String::valueOf)));
+        return parseTaskData(data.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> String.valueOf(e.getValue()))));
     }
 
     private Task parseTaskData(Map<String, String> data){
         String name = data.get("Name");
         String type = data.get("Type");
-        LocalDate date = TaskParser.parseDate(data.getOrDefault("Date", data.get("StartDate")));
+        LocalDate date = TaskParser.parseDate(data.get("Date"));
         LocalTime startTime = TaskParser.parseTime(data.get("StartTime"));
         TemporalAmount duration = TaskParser.parseDuration(data.get("Duration"));
 

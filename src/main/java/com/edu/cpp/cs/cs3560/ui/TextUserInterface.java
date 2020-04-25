@@ -23,7 +23,7 @@ public class TextUserInterface implements UserInterface {
 
 
     public String getInput() {
-        return StringUtils.defaultString(input.next()).trim();
+        return StringUtils.defaultString(input.nextLine()).trim();
     }
 
 

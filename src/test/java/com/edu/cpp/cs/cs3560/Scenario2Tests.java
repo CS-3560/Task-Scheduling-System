@@ -12,6 +12,10 @@ import java.io.IOException;
 
 public class Scenario2Tests {
 
+    /*
+    These Tests are not implemented correctly, this is just a rough draft
+     */
+
     private static final String ERROR_MESSAGE_1 = "No tasks match with task [Skip-out]";
 
     private static final AntiTask antiTask1 = ScenarioTestsUtils.createAntiTask(
@@ -31,7 +35,7 @@ public class Scenario2Tests {
     );
 
 
-    private final TaskModelManager manager = new TaskModelManager(HashMultimap.create());
+    private final TaskModelManager manager = new TaskModelManager();
 
 
     @Before

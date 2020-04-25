@@ -89,36 +89,48 @@ public class RecurringTask extends AbstractTask implements Task {
         if (obj.getClass() != getClass()) {
             return false;
         }
-        return EqualsBuilder.reflectionEquals(this, obj);
+
+        RecurringTask other = (RecurringTask) obj;
+        return new EqualsBuilder()
+                .append(name, other.name)
+                .append(type, other.type)
+                .append(startDate, other.startDate)
+                .append(startTime, other.startTime)
+                .append(duration, other.duration)
+                .append(endDate, other.endDate)
+                .append(frequency, other.frequency)
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+        return new HashCodeBuilder(17, 37)
+                .append(name)
+                .append(type)
+                .append(startDate)
+                .append(startTime)
+                .append(duration)
+                .append(endDate)
+                .append(frequency)
+                .toHashCode();
     }
+
 
     @Override
     public String toString(){
-        return prettyToString(ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE));
+        return prettyToString(
+                new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
+                        .append("Name", name)
+                        .append("Type", type)
+                        .append("StartDate", parseDateToInteger(startDate))
+                        .append("StartTime", parseTimeToDouble(startTime))
+                        .append("Duration", duration)
+                        .append("EndDate", parseDateToInteger(endDate))
+                        .append("Frequency", frequency.getKey())
+                        .toString()
+        );
     }
 
-    /*
-    @Override
-    public String toString(){
-        return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
-                .append("Name", name)
-                .append("Type", type)
-                .append("StartDate", parseDateToInteger(startDate))
-                .append("StartTime", parseTimeToDouble(startTime))
-                .append("Duration", duration)
-                .append("EndDate", parseDateToInteger(endDate))
-                .append("Frequency", frequency.getKey())
-                .toString()
-                .replace("{", "{\n")
-                .replace("}", "\n}")
-                .replace(",", ",\n");
-    }
-     */
 
 
     @Override

@@ -17,6 +17,8 @@ public interface TaskManager {
 
     Task removeTask(String name);
 
+    Task removeTask(Task task);
+
     void updateTask(Task task, Map<String, Object> updates);
 
     boolean taskExists(String name);

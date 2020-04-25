@@ -30,9 +30,9 @@ public final class TaskTypes {
         List<String> nonrecurring = List.of("Date", "StartTime", "Duration");
         List<String> recurring = List.of("StartDate", "StartTime", "Duration", "EndDate", "Frequency");
 
-        fields.putAll(TransientTask.class, nonrecurring);
-        fields.putAll(AntiTask.class, nonrecurring);
-        fields.putAll(RecurringTask.class, recurring);
+        fields.putAll(TransientTasks.class, nonrecurring);
+        fields.putAll(AntiTasks.class, nonrecurring);
+        fields.putAll(RecurringTasks.class, recurring);
     }
 
 
