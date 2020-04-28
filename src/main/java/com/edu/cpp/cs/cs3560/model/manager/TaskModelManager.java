@@ -90,7 +90,7 @@ public class TaskModelManager implements TaskManager {
 
         /*
             AntiTasks only remove instances of Recurring tasks, it does not save the task it replaces
-            so when deleting an antitask, it doesn't add the recrurring instance back
+            so when deleting an antitask, it doesn't add the recurring instance back
          */
 
         //TODO: Save recurring instance being removed
@@ -196,7 +196,7 @@ public class TaskModelManager implements TaskManager {
         final TemporalAmount duration = TaskParser.parseDuration(data.get("Duration"));
 
         LocalDate date;
-        if(data.containsKey("Data")){
+        if(data.containsKey("Date")){
             date = TaskParser.parseDate(data.get("Date"));
         } else if(data.containsKey("StartDate")){
             date = TaskParser.parseDate(data.get("StartDate"));

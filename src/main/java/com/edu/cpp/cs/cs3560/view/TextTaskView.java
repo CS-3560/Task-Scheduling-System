@@ -24,49 +24,27 @@ import java.util.stream.Collectors;
 public class TextTaskView implements TaskView {
 
     private static final String INVALID_INPUT_ERROR_MESSAGE = "\nInvalid Input. Please Try Again.";
-
     private static final String CORRECTNESS_PROMPT = "Is this correct? [Y,n]";
-
     private static final String PROMPT_USER_INPUT_FORMAT = "Enter %s:\t";
-
     private static final String FILE_PATH_PROMPT = "Enter path of file: ";
-
     private static final String READ_OPTION = "Read";
-
     private static final String WRITE_OPTION = "Write";
-
     private static final String INPUT_NON_APPLICABLE_MESSAGE = "If not applicable, enter N/A";
-
     private static final String CREATE_TASK_PSS_OPERATION = "Create a task";
-
     private static final String VIEW_TASK_PSS_OPERATION = "View a task";
-
     private static final String DELETE_TASK_PSS_OPERATION = "Delete a task";
-
     private static final String EDIT_TASK_PSS_OPERATION = "Edit a task";
-
     private static final String WRITE_TO_FILE_PSS_OPERATION = "Write the Schedule to a file";
-
     private static final String READ_FROM_FILE_PSS_OPERATION = "Read the schedule from a file";
-
     private static final String WHOLE_SCHEDULE_PSS_OPERATION = "View the schedule";
-
     private static final String DAY_SCHEDULE_PSS_OPERATION = "View or write the schedule for one day";
-
     private static final String WEEK_SCHEDULE_PSS_OPERATION = "View or write the schedule for one week";
-
     private static final String MONTH_SCHEDULE_PSS_OPERATION = "View or write the schedule for one month";
-
     private static final String[] EXIT_FLAGS = {"QUIT", "Q"};
-
     private static final String[] DONE_FLAGS = {"DONE", "D"};
-
     private static final String[] YES_FLAGS = {"YES", "Y"};
-
     private static final String[] NO_FLAGS = {"NO", "N"};
-
     private static final String CHANGE_FIELD_OPTION = "Change a field";
-
     private static final String DISPLAY_TASK_INFO_OPTION = "Display task info";
 
     private static final String UPDATE_OPTIONS_MENU = "\n1. " + CHANGE_FIELD_OPTION +
@@ -90,29 +68,17 @@ public class TextTaskView implements TaskView {
     private static final String PSS_OPERATION_OPTIONS_MENU = generateMenu();
 
     private static final String SUPPORTED_TASK_TYPES_HEADING = "\nSupported Task Types:";
-
     private static final String TASK_EDITOR_HEADER = "This is the Task Editor (Enter 'Done' when finished).\n";
-
     private static final String ORIGINAL_TASK_HEADER = "Here is the Original Task:";
-
     private static final String FIELD_NAME_ERROR_MESSAGE = "Field entered does not exist. Please make sure field name entered is correct.";
-
     private static final String CURRENT_TASK_INFO_HEADER = "Current Task Info:";
-
     private static final String UPDATED_TASK_INFO_HEADER = "Updated Task Info:";
-
     private static final String UPDATED_VALUE_PROMPT = "updated value";
-
     private static final String DID_YOU_MEAN_PROMPT_FORMAT = "Did you mean [%s]? [Y/n] ";
-
     private static final String WHAT_FIELD_PROMPT = "What field would you like to change? ";
-
     private static final String SCHEDULE_OPERATION_PROMPT = "Do you want to [View] or [Write] the schedule to a file? ";
-
     private static final String SCHEDULE_START_DATE_PROMPT = "Enter Start Date [yyyyMMdd]: ";
-
     private static final String OPERATION_OPTIONS_HEADER = "\nOperation options:";
-
     private static final String MENU_OPTIONS_PROMPT = "\n\nEnter operation to perform: ";
 
 
@@ -366,6 +332,7 @@ public class TextTaskView implements TaskView {
         for(final int key : keys){
             sb.append(String.format("\n\t%s. %s", StringUtils.leftPad(String.valueOf(key), 2), OPERATIONS.get(key)));
         }
+        sb.append(String.format("\n\tType \"Quit\" or \"Q\" to exit"));
 
         return sb.append(MENU_OPTIONS_PROMPT).toString();
     }

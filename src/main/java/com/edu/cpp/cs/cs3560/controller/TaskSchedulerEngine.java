@@ -97,7 +97,7 @@ public class TaskSchedulerEngine implements Engine {
             manager.addTask(data);
             view.displayMessage("Task added.");
         } catch (RuntimeException e){
-            view.displayError(String.format("There was an error creating the task %s", e.getMessage()));
+            view.displayError(String.format("There was an error creating the task. %s", e.getMessage()));
         }
     }
 
