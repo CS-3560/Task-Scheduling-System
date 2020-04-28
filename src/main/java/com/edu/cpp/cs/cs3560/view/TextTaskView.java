@@ -6,18 +6,17 @@ import com.edu.cpp.cs.cs3560.model.types.PSSOperation;
 import com.edu.cpp.cs.cs3560.model.types.PSSOperation.PSSOperationType;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes;
 import com.edu.cpp.cs.cs3560.ui.UserInterface;
+import com.google.common.collect.ObjectArrays;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -58,11 +57,22 @@ public class TextTaskView implements TaskView {
 
     private static final String MONTH_SCHEDULE_PSS_OPERATION = "View or write the schedule for one month";
 
-    private static final String EXECUTE_INSTRUCTIONS_FROM_FILE = "Execute instructions from a file";
-
     private static final String[] EXIT_FLAGS = {"QUIT", "Q"};
 
     private static final String[] DONE_FLAGS = {"DONE", "D"};
+
+    private static final String[] YES_FLAGS = {"YES", "Y"};
+
+    private static final String[] NO_FLAGS = {"NO", "N"};
+
+    private static final String CHANGE_FIELD_OPTION = "Change a field";
+
+    private static final String DISPLAY_TASK_INFO_OPTION = "Display task info";
+
+    private static final String UPDATE_OPTIONS_MENU = "\n1. " + CHANGE_FIELD_OPTION +
+                                                        "\n2. " + DISPLAY_TASK_INFO_OPTION +
+                                                        "\n3. Done." +
+                                                        "\nEnter option to perform: ";
 
     private static final Map<Integer, String> OPERATIONS = Map.ofEntries(
             Map.entry(1, CREATE_TASK_PSS_OPERATION),
@@ -74,11 +84,37 @@ public class TextTaskView implements TaskView {
             Map.entry(7, WHOLE_SCHEDULE_PSS_OPERATION),
             Map.entry(8, DAY_SCHEDULE_PSS_OPERATION),
             Map.entry(9, WEEK_SCHEDULE_PSS_OPERATION),
-            Map.entry(10, MONTH_SCHEDULE_PSS_OPERATION),
-            Map.entry(11, EXECUTE_INSTRUCTIONS_FROM_FILE)
+            Map.entry(10, MONTH_SCHEDULE_PSS_OPERATION)
     );
 
     private static final String PSS_OPERATION_OPTIONS_MENU = generateMenu();
+
+    private static final String SUPPORTED_TASK_TYPES_HEADING = "\nSupported Task Types:";
+
+    private static final String TASK_EDITOR_HEADER = "This is the Task Editor (Enter 'Done' when finished).\n";
+
+    private static final String ORIGINAL_TASK_HEADER = "Here is the Original Task:";
+
+    private static final String FIELD_NAME_ERROR_MESSAGE = "Field entered does not exist. Please make sure field name entered is correct.";
+
+    private static final String CURRENT_TASK_INFO_HEADER = "Current Task Info:";
+
+    private static final String UPDATED_TASK_INFO_HEADER = "Updated Task Info:";
+
+    private static final String UPDATED_VALUE_PROMPT = "updated value";
+
+    private static final String DID_YOU_MEAN_PROMPT_FORMAT = "Did you mean [%s]? [Y/n] ";
+
+    private static final String WHAT_FIELD_PROMPT = "What field would you like to change? ";
+
+    private static final String SCHEDULE_OPERATION_PROMPT = "Do you want to [View] or [Write] the schedule to a file? ";
+
+    private static final String SCHEDULE_START_DATE_PROMPT = "Enter Start Date [yyyyMMdd]: ";
+
+    private static final String OPERATION_OPTIONS_HEADER = "\nOperation options:";
+
+    private static final String MENU_OPTIONS_PROMPT = "\n\nEnter operation to perform: ";
+
 
     private static final Gson gson = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
@@ -88,25 +124,29 @@ public class TextTaskView implements TaskView {
     private final UserInterface ui;
     private final TaskSerializer serializer;
 
-    public TextTaskView(UserInterface ui, TaskSerializer serializer) {
+    public TextTaskView(final UserInterface ui, final TaskSerializer serializer) {
         this.ui = ui;
         this.serializer = serializer;
     }
 
     @Override
-    public String getInput(String prompt){
+    public String getInput(final String prompt){
         return ui.getInput(prompt);
+    }
+
+    public Map<String, String> getInputs(final String ...s){
+        return ui.getInput(s);
     }
 
     @Override
     public PSSOperation getOperation(){
-       Collection<String> options = getValidOperations();
+       final Collection<String> options = getValidOperations();
 
         String operation;
         do {
             String input = ui.getInput(PSS_OPERATION_OPTIONS_MENU);
 
-            operation = parseOptionInput(input);
+            operation = parseOperationInput(input);
 
             if(StringUtils.equalsAnyIgnoreCase(operation, EXIT_FLAGS)){
                 return PSSOperation.builder().withType(PSSOperationType.QUIT).create();
@@ -117,7 +157,7 @@ public class TextTaskView implements TaskView {
             }
         } while(!options.contains(operation));
 
-        PSSOperation.Builder builder = PSSOperation.builder();
+        final PSSOperation.Builder builder = PSSOperation.builder();
         if(StringUtils.equalsAnyIgnoreCase(operation, CREATE_TASK_PSS_OPERATION, VIEW_TASK_PSS_OPERATION, DELETE_TASK_PSS_OPERATION, EDIT_TASK_PSS_OPERATION)){
             if(operation.equalsIgnoreCase(CREATE_TASK_PSS_OPERATION)){
                 builder.withType(PSSOperationType.CREATE_TASK);
@@ -139,16 +179,14 @@ public class TextTaskView implements TaskView {
                             : PSSOperationType.WRITE_TO_FILE
             ).withData(getFileInfo());
         } else if(StringUtils.equalsIgnoreCase(operation, WHOLE_SCHEDULE_PSS_OPERATION)){
-            builder.withType(PSSOperationType.VIEW_SCHEDULE).withData("Operation", "VIEW").withData("Type", "WHOLE");
-        } else if(StringUtils.equalsIgnoreCase(operation, EXECUTE_INSTRUCTIONS_FROM_FILE)){
-            builder.withType(PSSOperationType.EXECUTE_INSTRUCTIONS).withData(getFileInfo());
+            builder.withType(PSSOperationType.VIEW_SCHEDULE).withData(OPERATION_KEY, VIEW_OPERATION_VALUE).withData(TYPE_KEY, WHOLE_SCHEDULE_OPERATION_VALUE);
         } else if(StringUtils.equalsAnyIgnoreCase(operation, DAY_SCHEDULE_PSS_OPERATION, WEEK_SCHEDULE_PSS_OPERATION, MONTH_SCHEDULE_PSS_OPERATION)){
-            Map<String, Object> data = getScheduleInfo(operation);
+            final Map<String, Object> data = getScheduleInfo(operation);
 
-            Object op = data.get("Operation");
-            if(op.equals("VIEW")){
+            final Object op = data.get(OPERATION_KEY);
+            if(op.equals(VIEW_OPERATION_VALUE)){
                 builder.withType(PSSOperationType.VIEW_SCHEDULE);
-            } else if(op.equals("WRITE")){
+            } else if(op.equals(WRITE_OPERATION_VALUE)){
                 builder.withType(PSSOperationType.WRITE_SCHEDULE);
             } else {
                 throw new RuntimeException(INVALID_INPUT_ERROR_MESSAGE);
@@ -164,24 +202,24 @@ public class TextTaskView implements TaskView {
    }
 
     private Map<String, Object> getTaskInfo(){
-        Collection<String> types = TaskTypes.getTaskTypeValues();
+        final Collection<String> types = TaskTypes.getTaskTypeValues();
 
         String type;
         do {
-            ui.displayln("\nSupported Task Types:");
+            ui.displayln(SUPPORTED_TASK_TYPES_HEADING);
             types.stream().map(t -> String.format("\t%s", t)).forEach(ui::displayln);
 
-            type = ui.getInput("Enter Type: ");
+            type = ui.getInput(String.format(PROMPT_USER_INPUT_FORMAT, TYPE_KEY));
             if(!TaskTypes.isSupportedTask(type)){
                 displayMessage(INVALID_INPUT_ERROR_MESSAGE);
             }
         } while(!TaskTypes.isSupportedTask(type));
 
-        Map<String, Object> info = new LinkedHashMap<>(getTaskName());
+        final Map<String, Object> info = new LinkedHashMap<>(getTaskName());
 
-        info.put("Type", type);
+        info.put(TYPE_KEY, type);
 
-        for(String field : TaskTypes.getFields(type)){
+        for(final String field : TaskTypes.getFields(type)){
             info.put(field, ui.getInput(String.format(PROMPT_USER_INPUT_FORMAT, field)));
         }
 
@@ -189,124 +227,121 @@ public class TextTaskView implements TaskView {
     }
 
     private Map<String, Object> getTaskName(){
-        return Map.of("Name", ui.getInput("Enter name: "));
+        return Map.of(NAME_KEY, ui.getInput(String.format(PROMPT_USER_INPUT_FORMAT, NAME_KEY)));
     }
 
     @Override
-    public void displayTasks(Collection<Task> tasks){
-        ui.displayln(serializer.serialize(tasks));
-    }
+    public Map<String, Object> getUpdatedInfo(final Map<String, Object> original){
+        final Map<String, Object> updated = new LinkedHashMap<>(original);
 
-    @Override
-    public void displayTask(Task task){
-        ui.displayln(task.toString());
-    }
-
-    public Map<String, String> updateUserTaskInfo(Map<String, String> original){
-        Map<String, String> updated = new LinkedHashMap<>(original);
-
-        List<String> keys = new ArrayList<>(updated.keySet());
-
-        String options = optionCollectionToString(keys);
+        ui.displayln(TASK_EDITOR_HEADER);
+        ui.displayln(ORIGINAL_TASK_HEADER);
+        ui.displayln(gson.toJson(original));
 
         String input;
         do {
-            ui.displayln(options);
-            input = ui.getInput("Which field to update? (Enter 'D' or 'Done' to finish): ");
-            try {
-                String key = NumberUtils.isParsable(input) ? keys.get(Integer.parseInt(input) - 1) : input;
-                if(!updated.containsKey(key)){
-                    throw new IndexOutOfBoundsException();
+            input = getInput(UPDATE_OPTIONS_MENU);
+            if(StringUtils.equalsAnyIgnoreCase(input, "1", CHANGE_FIELD_OPTION)){
+                try {
+                    final String field = getFieldToUpdate(updated);
+                    if(StringUtils.isNotEmpty(field)){
+                        final String value = getInput(String.format(PROMPT_USER_INPUT_FORMAT, UPDATED_VALUE_PROMPT));
+                        updated.put(field, value);
+                    }
+                } catch (IllegalArgumentException e){
+                    ui.displayError(e.getMessage());
+                    ui.displayError(FIELD_NAME_ERROR_MESSAGE);
                 }
-
-                input = key;
-            } catch (IndexOutOfBoundsException | NullPointerException e){
-                ui.displayln(INVALID_INPUT_ERROR_MESSAGE);
-                ui.displayln("Enter --h for help\n");
-                continue;
+            } else if(StringUtils.equalsAnyIgnoreCase(input, "2", DISPLAY_TASK_INFO_OPTION)){
+                ui.displayln(CURRENT_TASK_INFO_HEADER);
+                ui.displayln(gson.toJson(updated));
+            } else if(StringUtils.equalsAnyIgnoreCase(input, ObjectArrays.concat("3", DONE_FLAGS))){
+                ui.displayln(UPDATED_TASK_INFO_HEADER);
+                ui.displayln(gson.toJson(updated));
+            } else {
+                ui.displayError(INVALID_INPUT_ERROR_MESSAGE);
             }
-
-            Objects.requireNonNull(updated.replace(input, ui.getInput(String.format(PROMPT_USER_INPUT_FORMAT, input))));
-        } while(!(StringUtils.equalsAnyIgnoreCase(input, DONE_FLAGS)));
-
+        } while(!StringUtils.equalsAnyIgnoreCase(input, ObjectArrays.concat("3", DONE_FLAGS)));
 
         return updated;
     }
 
-    private Map<String, Object> getFileInfo(){
-        return Map.of("File", ui.getInput(FILE_PATH_PROMPT));
+    private String getFieldToUpdate(final Map<String, Object> data){
+        final String field = getInput(WHAT_FIELD_PROMPT);
+        if(data.containsKey(field)){
+            return field;
+        } else if (StringUtils.equalsAnyIgnoreCase(field, data.keySet().toArray(new String[0]))){
+            final Optional<String> possible = data.keySet().stream().filter(k -> k.equalsIgnoreCase(field)).findFirst();
+            if(possible.isPresent()){
+                final String key = possible.get();
+
+                String input;
+                do {
+                    input = getInput(String.format(DID_YOU_MEAN_PROMPT_FORMAT, key));
+
+                    if(StringUtils.equalsAnyIgnoreCase(input, YES_FLAGS)){
+                        return key;
+                    } else if(StringUtils.equalsAnyIgnoreCase(input, NO_FLAGS)){
+                        return StringUtils.EMPTY;
+                    } else {
+                        ui.displayError(INVALID_INPUT_ERROR_MESSAGE);
+                    }
+                } while(!StringUtils.equalsAnyIgnoreCase(input, ObjectArrays.concat(YES_FLAGS, NO_FLAGS, String.class)));
+            }
+        }
+
+        throw new IllegalArgumentException(INVALID_INPUT_ERROR_MESSAGE);
     }
 
-    private Map<String, Object> getScheduleInfo(String input){
-        Map<String, Object> options = new LinkedHashMap<>();
+    @Override
+    public void displayTasks(final Collection<Task> tasks){
+        ui.displayln(serializer.serialize(tasks));
+    }
+
+    @Override
+    public void displayTask(final Task task){
+        ui.displayln(task.toString());
+    }
+
+    private Map<String, Object> getFileInfo(){
+        return Map.of(FILE_KEY, ui.getInput(FILE_PATH_PROMPT));
+    }
+
+    private Map<String, Object> getScheduleInfo(final String input){
+        final Map<String, Object> options = new LinkedHashMap<>();
 
         String operation;
         do{
-            operation = ui.getInput("Do you want to [View] or [Write] the schedule to a file? ");
-            if(operation.equalsIgnoreCase("VIEW")){
-                options.put("Operation", "VIEW");
-            } else if(operation.equalsIgnoreCase("WRITE")){
-                options.put("Operation", "WRITE");
+            operation = ui.getInput(SCHEDULE_OPERATION_PROMPT);
+            if(operation.equalsIgnoreCase(VIEW_OPERATION_VALUE)){
+                options.put(OPERATION_KEY, VIEW_OPERATION_VALUE);
+            } else if(operation.equalsIgnoreCase(WRITE_OPERATION_VALUE)){
+                options.put(OPERATION_KEY, WRITE_OPERATION_VALUE);
                 options.putAll(getFileInfo());
             } else {
                 ui.displayln(INVALID_INPUT_ERROR_MESSAGE);
             }
-        } while(!StringUtils.equalsAnyIgnoreCase(operation, "View", "Write"));
+        } while(!StringUtils.equalsAnyIgnoreCase(operation, VIEW_OPERATION_VALUE, WRITE_OPERATION_VALUE));
 
-        options.put("StartDate", ui.getInput("Enter Start Date [yyyyMMdd]: "));
+        options.put(SCHEDULE_START_DATE_KEY, ui.getInput(SCHEDULE_START_DATE_PROMPT));
 
         String type;
         if(input.equalsIgnoreCase(DAY_SCHEDULE_PSS_OPERATION)){
-            type = "DAY";
+            type = DAY_SCHEDULE_OPERATION_VALUE;
         } else if(input.equalsIgnoreCase(WEEK_SCHEDULE_PSS_OPERATION)){
-            type = "WEEK";
+            type = WEEK_SCHEDULE_OPERATION_VALUE;
         } else if(input.equalsIgnoreCase(MONTH_SCHEDULE_PSS_OPERATION)){
-            type = "MONTH";
+            type = MONTH_SCHEDULE_OPERATION_VALUE;
         } else {
             throw new RuntimeException(INVALID_INPUT_ERROR_MESSAGE);
         }
 
-        options.put("Type", type);
+        options.put(TYPE_KEY, type);
 
         return options;
     }
 
-
-
-    private boolean isCorrect(Map<String, String> m){
-        return isCorrect(gson.toJson(m));
-    }
-
-    private boolean isCorrect(String s){
-        try {
-            ui.displayln(s);
-
-            String input = ui.getInput(CORRECTNESS_PROMPT);
-            if(input.equalsIgnoreCase("Y") || input.equalsIgnoreCase("YES")){
-                return true;
-            } else if(input.equalsIgnoreCase("N") || input.equalsIgnoreCase("NO")){
-                return false;
-            } else {
-                ui.displayln(INVALID_INPUT_ERROR_MESSAGE);
-                return isCorrect(s);
-            }
-        } catch (StackOverflowError | OutOfMemoryError e){
-            return false;
-        }
-    }
-
-    private String optionCollectionToString(Collection<String> collection){
-        List<String> options = new ArrayList<>(collection);
-
-        StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < options.size(); ++i){
-            sb.append(i + 1).append(".\t").append(options.get(i)).append("\n");
-        }
-
-        return sb.toString();
-    }
-
-    private String parseOptionInput(String input){
+    private String parseOperationInput(final String input){
         return (NumberUtils.isDigits(input) ? OPERATIONS.get(Integer.parseInt(input)) : input).toUpperCase();
     }
 
@@ -315,25 +350,24 @@ public class TextTaskView implements TaskView {
     }
 
     @Override
-    public void displayMessage(String message){
+    public void displayMessage(final String message){
         ui.displayln(message);
     }
 
     @Override
-    public void displayError(String message){
+    public void displayError(final String message){
         ui.displayError(message);
     }
 
     private static String generateMenu(){
-        StringBuilder sb = new StringBuilder("\nOperation options:");
+        final StringBuilder sb = new StringBuilder(OPERATION_OPTIONS_HEADER);
 
-        SortedSet<Integer> keys = new TreeSet<>(OPERATIONS.keySet());
-        for(int key : keys){
+        final SortedSet<Integer> keys = new TreeSet<>(OPERATIONS.keySet());
+        for(final int key : keys){
             sb.append(String.format("\n\t%s. %s", StringUtils.leftPad(String.valueOf(key), 2), OPERATIONS.get(key)));
         }
 
-
-        return sb.append("\n\nEnter operation to perform: ").toString();
+        return sb.append(MENU_OPTIONS_PROMPT).toString();
     }
 
 }

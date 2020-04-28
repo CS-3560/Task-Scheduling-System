@@ -22,14 +22,14 @@ public enum Frequency {
     public final int key;
     public final TemporalUnit unit;
 
-    Frequency(int key, TemporalUnit unit){
+    Frequency(final int key, final TemporalUnit unit){
         this.key = key;
         this.unit = unit;
     }
 
-    public int getKey(){ return key; }
+    public final int getKey(){ return key; }
 
-    public TemporalUnit getUnit(){ return unit; }
+    public final TemporalUnit getUnit(){ return unit; }
 
     public static Frequency getFrequency(int key){
         return frequencies.inverse().get(key);

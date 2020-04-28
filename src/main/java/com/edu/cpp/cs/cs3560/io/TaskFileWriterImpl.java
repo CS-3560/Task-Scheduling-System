@@ -18,12 +18,12 @@ public class TaskFileWriterImpl implements TaskFileWriter {
 
     private final TaskSerializer serializer;
 
-    public TaskFileWriterImpl(TaskSerializer serializer) {
+    public TaskFileWriterImpl(final TaskSerializer serializer) {
         this.serializer = serializer;
     }
 
     @Override
-    public void write(String file, Task task) throws IOException {
+    public void write(final String file, final Task task) throws IOException {
         try {
             Files.write(Paths.get(file), serializer.serialize(task).getBytes());
         } catch (IOException e){
@@ -32,7 +32,7 @@ public class TaskFileWriterImpl implements TaskFileWriter {
     }
 
     @Override
-    public void write(String file, Collection<Task> tasks) throws IOException {
+    public void write(final String file, final Collection<Task> tasks) throws IOException {
         try {
             Files.write(Paths.get(file), serializer.serialize(tasks).getBytes());
         } catch (IOException e){
@@ -41,7 +41,7 @@ public class TaskFileWriterImpl implements TaskFileWriter {
     }
 
     @Override
-    public void write(File file, Task task) throws IOException {
+    public void write(final File file, final Task task) throws IOException {
         try (OutputStream os = new FileOutputStream(file)){
             os.write(serializer.serialize(task).getBytes());
         } catch (IOException e){
@@ -50,7 +50,7 @@ public class TaskFileWriterImpl implements TaskFileWriter {
     }
 
     @Override
-    public void write(File file, Collection<Task> tasks) throws IOException {
+    public void write(final File file, final Collection<Task> tasks) throws IOException {
         try (Writer writer = new FileWriter(file)){
             writer.write(serializer.serialize(tasks));
         } catch (IOException e){

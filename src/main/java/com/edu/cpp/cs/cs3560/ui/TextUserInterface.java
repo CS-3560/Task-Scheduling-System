@@ -10,50 +10,50 @@ import java.util.Scanner;
 public class TextUserInterface implements UserInterface {
     private static final Scanner input = new Scanner(System.in);
 
+    public TextUserInterface(){}
 
-
-    public void display(String s) {
-        System.out.print(s);
+    @Override
+    public void display(final String s) {
+        print(s);
     }
 
-
-    public void displayln(String s) {
-        System.out.println(s);
+    @Override
+    public void displayln(final String s) {
+        println(s);
     }
 
-
+    @Override
     public String getInput() {
         return StringUtils.defaultString(input.nextLine()).trim();
     }
 
-
-    public String getInput(String s) {
+    @Override
+    public String getInput(final String s) {
         display(s);
         return getInput();
     }
 
-
-    public Map<String, String> getInput(String... s) {
-        Map<String, String> inputs = new LinkedHashMap<>();
-        for(String k : s){
+    @Override
+    public Map<String, String> getInput(final String... s) {
+        final Map<String, String> inputs = new LinkedHashMap<>();
+        for(final String k : s){
             inputs.put(k, getInput(k));
         }
 
         return Collections.unmodifiableMap(inputs);
     }
 
-    public Map<String, String> getInput(String p, String... s) {
-        Map<String, String> inputs = new LinkedHashMap<>();
-        for(String k : s){
-            inputs.put(k, getInput(p + k));
-        }
-
-        return Collections.unmodifiableMap(inputs);
+    @Override
+    public void displayError(final String s){
+        System.err.println(s);
     }
 
-    @Override
-    public void displayError(String s){
-        System.err.println(s);
+    public void print(final String s){
+        System.out.print(s);
+    }
+
+    public void println(final String s){
+        System.out.println(s);
     }
 
 }

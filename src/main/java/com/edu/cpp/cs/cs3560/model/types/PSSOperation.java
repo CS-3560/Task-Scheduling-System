@@ -6,20 +6,20 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class PSSOperation {
+public final class PSSOperation {
     private final PSSOperationType type;
     private final Map<String, Object> data;
 
-    private PSSOperation(PSSOperationType type, Map<String, Object> data) {
+    private PSSOperation(final PSSOperationType type, final Map<String, Object> data) {
         this.type = Objects.requireNonNull(type);
         this.data = Objects.requireNonNull(data);
     }
 
-    public PSSOperationType getType() {
+    public final PSSOperationType getType() {
         return type;
     }
 
-    public Map<String, Object> getData() {
+    public final Map<String, Object> getData() {
         return ImmutableMap.copyOf(data);
     }
 
@@ -32,53 +32,49 @@ public class PSSOperation {
 
         private PSSOperationType type;
 
+
         private Builder(){}
 
-        public PSSOperationType getType(){ return type; }
+        public final PSSOperationType getType(){ return type; }
 
-        public void setType(PSSOperationType type){
+        public final void setType(final PSSOperationType type){
             this.type = type;
         }
 
-        public Builder withType(PSSOperationType type){
+        public final Builder withType(final PSSOperationType type){
             setType(type);
             return this;
         }
 
-        public Map<String, Object> getData(){
+        public final Map<String, Object> getData(){
             return ImmutableMap.copyOf(data);
         }
 
-        public void addData(Map<String, Object> data){
+        public final void addData(final Map<String, Object> data){
             this.data.putAll(data);
         }
 
-        public Builder withData(Map<String, Object> data){
+        public final Builder withData(final Map<String, Object> data){
             addData(data);
             return this;
         }
 
-        public void addData(String key, Object value){
+        public final void addData(final String key, final Object value){
             data.put(key, value);
         }
 
-        public Builder withData(String key, Object value){
+        public final Builder withData(final String key, final Object value){
             addData(key, value);
             return this;
         }
 
-        public PSSOperation create(){
+        public final PSSOperation create(){
             return new PSSOperation(type, data);
         }
 
     }
 
-
-
-
-
     public enum PSSOperationType {
-
         CREATE_TASK,
         VIEW_TASK,
         DELETE_TASK,
@@ -87,9 +83,7 @@ public class PSSOperation {
         READ_FROM_FILE,
         VIEW_SCHEDULE,
         WRITE_SCHEDULE,
-        EXECUTE_INSTRUCTIONS,
         QUIT
-
     }
 
 }

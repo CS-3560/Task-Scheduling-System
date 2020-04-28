@@ -63,7 +63,6 @@ public final class TaskTypes {
     }
 
     public enum RecurringTasks {
-
         CLASS("Class"),
         STUDY("Study"),
         SLEEP("Sleep"),
@@ -78,7 +77,7 @@ public final class TaskTypes {
             this.type = type;
         }
 
-        public String getType(){ return type; }
+        public final String getType(){ return type; }
 
         @Override
         public String toString(){ return getType(); }
@@ -86,7 +85,6 @@ public final class TaskTypes {
     }
 
     public enum TransientTasks {
-
         VISIT("Visit"),
         SHOPPING("Shopping"),
         APPOINTMENT("Appointment");
@@ -97,7 +95,7 @@ public final class TaskTypes {
             this.type = type;
         }
 
-        public String getType(){ return type; }
+        public final String getType(){ return type; }
 
         @Override
         public String toString(){ return getType(); }
@@ -106,7 +104,6 @@ public final class TaskTypes {
 
 
     public enum AntiTasks {
-
         CANCELLATION("Cancellation");
 
         public final String type;
@@ -115,12 +112,11 @@ public final class TaskTypes {
             this.type = type;
         }
 
-        public String getType(){ return type; }
+        public final String getType(){ return type; }
 
         @Override
         public String toString(){ return getType(); }
 
     }
-
 
 }

@@ -1,6 +1,5 @@
 package com.edu.cpp.cs.cs3560.model.tasks.anti;
 
-import com.edu.cpp.cs.cs3560.model.tasks.AbstractTask;
 import com.edu.cpp.cs.cs3560.model.tasks.NonRecurringTask;
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -8,27 +7,26 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAmount;
 
 
-public class AntiTask extends NonRecurringTask implements Task {
+public class AntiTask extends NonRecurringTask implements Task, Comparable<Task> {
 
-    public AntiTask(String name, String type, LocalDate date, LocalTime startTime, TemporalAmount duration) {
+    public AntiTask(final String name, final String type, final LocalDate date, final LocalTime startTime, final TemporalAmount duration) {
         super(name, type, date, startTime, duration);
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) { return false; }
         if (obj == this) { return true; }
         if (obj.getClass() != getClass()) {
             return false;
         }
 
-        AntiTask other = (AntiTask) obj;
+        final AntiTask other = (AntiTask) obj;
         return new EqualsBuilder()
                 .append(name, other.name)
                 .append(type, other.type)
@@ -49,8 +47,6 @@ public class AntiTask extends NonRecurringTask implements Task {
                 .toHashCode();
     }
 
-
-
     @Override
     public String toString(){
         return prettyToString(
@@ -63,7 +59,5 @@ public class AntiTask extends NonRecurringTask implements Task {
                         .toString()
         );
     }
-
-
 
 }

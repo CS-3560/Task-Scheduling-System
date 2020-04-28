@@ -16,12 +16,12 @@ public class TaskFileReaderImpl implements TaskFileReader {
 
     private final TaskDeserializer deserializer;
 
-    public TaskFileReaderImpl(TaskDeserializer deserializer) {
+    public TaskFileReaderImpl(final TaskDeserializer deserializer) {
         this.deserializer = deserializer;
     }
 
     @Override
-    public List<Task> read(String file) throws IOException {
+    public List<Task> read(final String file) throws IOException {
         try {
             return deserializer.deserialize(new String(Files.readAllBytes(Paths.get(file))));
         } catch (IOException e){
@@ -30,7 +30,7 @@ public class TaskFileReaderImpl implements TaskFileReader {
     }
 
     @Override
-    public List<Task> read(File file) throws IOException {
+    public List<Task> read(final File file) throws IOException {
         try {
             return deserializer.deserialize(FileUtils.readFileToString(file, "UTF-8"));
         } catch (IOException e){

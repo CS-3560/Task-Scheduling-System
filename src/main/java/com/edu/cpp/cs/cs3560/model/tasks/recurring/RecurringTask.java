@@ -2,7 +2,6 @@ package com.edu.cpp.cs.cs3560.model.tasks.recurring;
 
 import com.edu.cpp.cs.cs3560.model.tasks.AbstractTask;
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
-import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -13,84 +12,90 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAmount;
+import java.util.LinkedList;
+import java.util.List;
 
-public class RecurringTask extends AbstractTask implements Task {
-
-    protected transient LocalDate startDate;
-    protected transient LocalDate endDate;
-    protected transient Frequency frequency;
-
-    public RecurringTask(){}
+public class RecurringTask extends AbstractTask implements Task, Comparable<Task> {
+    protected transient final LocalDate startDate;
+    protected transient final LocalDate endDate;
+    protected transient final Frequency frequency;
 
     public RecurringTask(
-            String name,
-            String type,
-            LocalDate date,
-            LocalTime startTime,
-            TemporalAmount duration
+            final String name,
+            final String type,
+            final LocalDate date,
+            final LocalTime startTime,
+            final TemporalAmount duration,
+            final LocalDate endDate,
+            final Frequency frequency
     ) {
         super(name, type, startTime, duration);
-    }
-
-    public RecurringTask(
-            String name,
-            String type,
-            LocalDate date,
-            LocalTime startTime,
-            TemporalAmount duration,
-            LocalDate endDate,
-            Frequency frequency
-    ) {
-        this(name, type, date, date, startTime, duration, endDate, frequency);
-    }
-
-    public RecurringTask(
-            String name,
-            String type,
-            LocalDate date,
-            LocalDate startDate,
-            LocalTime startTime,
-            TemporalAmount duration,
-            LocalDate endDate,
-            Frequency frequency
-    ) {
-        this(name, type, date, startTime, duration);
-        this.startDate = startDate;
+        this.startDate = date;
         this.endDate = endDate;
         this.frequency = frequency;
     }
 
     public LocalDate getStartDate(){ return startDate; }
 
-    public void setStartDate(LocalDate startDate){
-        this.startDate = startDate;
-    }
-
     public LocalDate getEndDate() {
         return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
     }
 
     public Frequency getFrequency() {
         return frequency;
     }
 
-    public void setFrequency(Frequency frequency) {
-        this.frequency = frequency;
+    @Override
+    public boolean overlap(final Task other){
+        if(this.equals(other)) return false;
+
+        if(other.getClass() == RecurringTransientTask.class) return false;
+
+        for(final LocalDateTime rdate : getDates()){
+            if(rdate.isBefore(other.getEndDateTime()) && rdate.plus(duration).isAfter(other.getDateTime())){
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean matchInterval(final Task other){
+        if(this.equals(other)) return false;
+
+        if(other.getClass() == RecurringTransientTask.class) return false;
+
+        for(final LocalDateTime rdate : getDates()){
+            if(rdate.equals(other.getDateTime()) && this.getDuration().equals(other.getDuration())){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public List<LocalDateTime> getDates(){
+        final List<LocalDateTime> dates = new LinkedList<>();
+
+        LocalDateTime current = LocalDateTime.of(startDate, startTime);
+        while(current.isBefore(getEndDateTime())){
+            dates.add(current);
+            current = current.plus(1, frequency.getUnit());
+        }
+
+        return dates;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
         if (obj == null) { return false; }
         if (obj == this) { return true; }
         if (obj.getClass() != getClass()) {
             return false;
         }
 
-        RecurringTask other = (RecurringTask) obj;
+        final RecurringTask other = (RecurringTask) obj;
         return new EqualsBuilder()
                 .append(name, other.name)
                 .append(type, other.type)
@@ -124,7 +129,7 @@ public class RecurringTask extends AbstractTask implements Task {
                         .append("Type", type)
                         .append("StartDate", parseDateToInteger(startDate))
                         .append("StartTime", parseTimeToDouble(startTime))
-                        .append("Duration", duration)
+                        .append("Duration", parseDuration(duration))
                         .append("EndDate", parseDateToInteger(endDate))
                         .append("Frequency", frequency.getKey())
                         .toString()
@@ -136,11 +141,6 @@ public class RecurringTask extends AbstractTask implements Task {
     @Override
     public LocalDate getDate() {
         return startDate;
-    }
-
-    @Override
-    public void setDate(LocalDate date) {
-        this.startDate = date;
     }
 
     @Override

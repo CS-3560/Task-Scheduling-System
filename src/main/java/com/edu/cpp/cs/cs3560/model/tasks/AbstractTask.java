@@ -14,20 +14,18 @@ import java.time.temporal.TemporalAmount;
 public abstract class AbstractTask implements Task, Comparable<Task> {
 
     @SerializedName("Name")
-    protected String name;
+    protected final String name;
 
     @SerializedName("Type")
-    protected String type;
+    protected final String type;
 
     @SerializedName("StartTime")
-    protected LocalTime startTime;
+    protected final LocalTime startTime;
 
     @SerializedName("Duration")
-    protected TemporalAmount duration;
+    protected final TemporalAmount duration;
 
-    public AbstractTask(){}
-
-    public AbstractTask(String name, String type, LocalTime startTime, TemporalAmount duration) {
+    public AbstractTask(final String name, final String type, final LocalTime startTime, final TemporalAmount duration) {
         this.name = name;
         this.type = type;
         this.startTime = startTime;
@@ -40,18 +38,8 @@ public abstract class AbstractTask implements Task, Comparable<Task> {
     }
 
     @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
     public String getType() {
         return type;
-    }
-
-    @Override
-    public void setType(String type) {
-        this.type = type;
     }
 
     @Override
@@ -60,18 +48,8 @@ public abstract class AbstractTask implements Task, Comparable<Task> {
     }
 
     @Override
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
-    @Override
     public TemporalAmount getDuration() {
         return duration;
-    }
-
-    @Override
-    public void setDuration(TemporalAmount duration) {
-        this.duration = duration;
     }
 
     @Override
@@ -80,10 +58,24 @@ public abstract class AbstractTask implements Task, Comparable<Task> {
     }
 
     @Override
-    public int compareTo(Task other){
-        int cd = getDate().compareTo(other.getDate());
+    public boolean overlap(final Task other){
+        if(this.equals(other)) return false;
+
+        return (this.getDateTime().isBefore(other.getEndDateTime()) && this.getEndDateTime().isAfter(other.getDateTime()));
+    }
+
+    @Override
+    public boolean matchInterval(final Task other){
+        if(this.equals(other)) return false;
+
+        return this.getDateTime().equals(other.getDateTime()) && this.getDuration().equals(other.getDuration());
+    }
+
+    @Override
+    public int compareTo(final Task other){
+        final int cd = getDate().compareTo(other.getDate());
         if(cd == 0){
-            int ct = this.startTime.compareTo(other.getStartTime());
+            final int ct = this.startTime.compareTo(other.getStartTime());
             if(ct == 0){
                 return Duration.from(this.duration).compareTo(Duration.from(other.getDuration()));
             }
@@ -94,27 +86,27 @@ public abstract class AbstractTask implements Task, Comparable<Task> {
         return cd;
     }
 
-    protected final String prettyToString(String s){
+    protected final String prettyToString(final String s){
         return s.replace("{", "{\n")
                 .replace("}", "\n}")
                 .replace(",", ",\n");
     }
 
-    protected final int parseDateToInteger(LocalDate date){
+    protected final int parseDateToInteger(final LocalDate date){
         return Integer.parseInt(date.format(DateTimeFormatter.BASIC_ISO_DATE));
     }
 
-    protected final double parseTimeToDouble(LocalTime time){
-        double hour = time.getHour();
-        double minute = ((double) time.getMinute()) / 60.0;
+    protected final double parseTimeToDouble(final LocalTime time){
+        final double hour = time.getHour();
+        final double minute = ((double) time.getMinute()) / 60.0;
 
         return hour + minute;
     }
 
-    protected final double parseDuration(TemporalAmount amount){
-        Duration duration = Duration.from(amount);
-        double hour = duration.toHoursPart();
-        double minute = ((double) duration.toMinutesPart()) / 60.0;
+    protected final double parseDuration(final TemporalAmount amount){
+        final Duration duration = Duration.from(amount);
+        final double hour = duration.toHoursPart();
+        final double minute = ((double) duration.toMinutesPart()) / 60.0;
 
 
         return hour + minute;

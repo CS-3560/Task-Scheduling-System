@@ -5,8 +5,6 @@ import com.edu.cpp.cs.cs3560.model.types.TaskTypes;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes.AntiTasks;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes.RecurringTasks;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes.TransientTasks;
-import com.edu.cpp.cs.cs3560.util.TaskValidator;
-import com.edu.cpp.cs.cs3560.model.tasks.NonRecurringTask;
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import com.edu.cpp.cs.cs3560.model.tasks.anti.AntiTask;
 import com.edu.cpp.cs.cs3560.model.tasks.recurring.Frequency;
@@ -27,38 +25,40 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
 public class TaskModelManager implements TaskManager {
-    private static final String TASK_ALREADY_EXISTS_ERROR_MESSAGE_FORMAT = "Task [%s] already exists.";
-    private static final String NO_SUCH_TASK_ERROR_MESSAGE_FORMAT = "Task [%s] does not exists.";
-
     public final Map<String, Task> tasks = new HashMap<>();
     private final Multimap<Task, Task> schedule = HashMultimap.create();
 
+    public TaskModelManager(){}
 
     @Override
-    public Task getTask(String name){
+    public Task getTask(final String name){
         if(!tasks.containsKey(name)){
-            throw new TaskManagerException(String.format(NO_SUCH_TASK_ERROR_MESSAGE_FORMAT, name));
+            throw new TaskManagerException(String.format("Task [%s] does not exists.", name));
         }
 
         return tasks.get(name);
     }
 
     @Override
-    public List<Task> getTasks(String name){
-        //return new ArrayList<>(schedule.get(name));
-        return new ArrayList<>();
+    public List<Task> getTasks(final String name){
+        return new ArrayList<>(schedule.get(tasks.get(name)));
     }
 
-    public void addTask(Map<String, Object> data){
+    public void addTask(final Map<String, Object> data){
         addTask(parseTask(data));
     }
 
     @Override
-    public void addTask(Task task){
+    public void addTask(final Task task){
+        if(taskExists(task.getName())){
+            throw new TaskManagerException(String.format("Task [%s] already exists", task.getName()));
+        }
+
         try {
             if (task instanceof TransientTask) {
                 addTransientTask((TransientTask) task);
@@ -72,25 +72,21 @@ public class TaskModelManager implements TaskManager {
 
             tasks.put(task.getName(), task);
         } catch (RuntimeException e){
-            throw new TaskManagerException(String.format("There was a problem adding task [%s]: %s", task.getName(), e.getCause().getMessage()));
+            throw new TaskManagerException(String.format("There was a problem adding task [%s]: %s", task.getName(), e.getMessage()));
         }
     }
 
-    public void addTransientTask(TransientTask task){
+    public void addTransientTask(final TransientTask task){
         validate(task);
         schedule.put(task, task);
     }
 
-    public void addAntiTask(AntiTask antiTask){
-        try {
-            TaskValidator.validateTaskMatchingDateTime(
-                    antiTask, schedule.values().stream()
-                            .filter(t -> t instanceof RecurringTransientTask)
-                            .collect(Collectors.toSet())
-            );
-        } catch (RuntimeException e){
-            throw new TaskManagerException(e);
+    public void addAntiTask(final AntiTask antiTask){
+        final boolean matching = tasks.values().stream().filter(t -> t.matchInterval(antiTask)).count() == 1;
+        if(!matching){
+            throw new TaskManagerException("There must be only one instance of recurring task for an anti-task");
         }
+
 
         /*
             AntiTasks only remove instances of Recurring tasks, it does not save the task it replaces
@@ -99,28 +95,27 @@ public class TaskModelManager implements TaskManager {
 
         //TODO: Save recurring instance being removed
 
-        schedule.values().removeIf(t -> TaskValidator.getInstance().checkForMatchingDateTime(antiTask, t));
+        schedule.values().removeIf(t -> t.matchInterval(antiTask));
         tasks.put(antiTask.getName(), antiTask);
     }
 
-    public void addRecurringTask(RecurringTask recurring){
-        List<Task> recurringTasks = new LinkedList<>();
+    public void addRecurringTask(final RecurringTask recurring){
+        final List<Task> recurringTasks = new LinkedList<>();
 
-        String name = recurring.getName();
-        String type = recurring.getType();
-        LocalTime startTime = recurring.getStartTime();
-        TemporalAmount duration = recurring.getDuration();
-        Frequency frequency = recurring.getFrequency();
+        final String name = recurring.getName();
+        final String type = recurring.getType();
+        final LocalTime startTime = recurring.getStartTime();
+        final TemporalAmount duration = recurring.getDuration();
+        final Frequency frequency = recurring.getFrequency();
 
-        LocalDate start = recurring.getStartDate();
-        LocalDate end = recurring.getEndDate();
+        final LocalDate start = recurring.getStartDate();
+        final LocalDate end = recurring.getEndDate();
 
         LocalDate date = LocalDate.from(start);
         while(date.isBefore(end)){
-            Task task = new RecurringTransientTask(name, type, date, start, startTime, duration, end, frequency);
+            final Task task = new RecurringTransientTask(name, type, date, start, startTime, duration, end, frequency);
 
             validate(task);
-
             recurringTasks.add(task);
 
             date = date.plus(1, frequency.getUnit());
@@ -130,9 +125,8 @@ public class TaskModelManager implements TaskManager {
     }
 
 
-
     @Override
-    public boolean taskExists(String name){
+    public boolean taskExists(final String name){
         return tasks.containsKey(name);
     }
 
@@ -147,102 +141,70 @@ public class TaskModelManager implements TaskManager {
     }
 
     @Override
-    public Task removeTask(String name){
+    public Task removeTask(final String name){
         if(!tasks.containsKey(name)){
-            throw new TaskManagerException(String.format(NO_SUCH_TASK_ERROR_MESSAGE_FORMAT, name));
+            throw new TaskManagerException(String.format("Task [%s] does not exists.", name));
         }
-
-        //TODO: Implement Removing AntiTask (Read the Lecture 15 slides)
 
         schedule.removeAll(tasks.get(name));
         return tasks.remove(name);
     }
 
     @Override
-    public Task removeTask(Task task){
-
-        //TODO: Implement removing tasks according to slides (Read the Lecture 15 slides)
-
-        return null;
+    public Task removeTask(final Task task){
+        return removeTask(task.getName());
     }
 
     @Override
-    public void updateTask(Task task, Map<String, Object> updates){
-        //TODO: Implement this
+    public void updateTask(final Task task, Map<String, Object> updates){
+        final Task updated = parseTask(updates);
 
-        if(updates.containsKey("Type")){
-            String updatedType = (String) updates.get("Type");
+        if(!Objects.equals(task.getType(), updated.getType())){
+            throw new IllegalArgumentException("Changing a Task type is not supported.");
         }
 
-        if(updates.containsKey("StartTime")){
-            LocalTime updatedStartTime = (LocalTime) updates.get("StartTime");
-        }
-
-        if(updates.containsKey("Duration")){
-            TemporalAmount duration = (TemporalAmount) updates.get("Duration");
-        }
-
-        if(task instanceof NonRecurringTask){
-            if(updates.containsKey("Date")){
-                LocalDate updatedDate = (LocalDate) updates.get("Date");
+        if(!Objects.equals(task.getName(), updated.getName())){
+            if(taskExists(updated.getName())){
+                throw new TaskManagerException(String.format("Task [%s] already exists", task.getName()));
             }
         }
 
-        if(task instanceof RecurringTask){
-            if(updates.containsKey("StartDate")){
-                LocalDate updatedStartDate = (LocalDate) updates.get("StartDate");
-                ((RecurringTask) task).setStartDate(updatedStartDate);
-            }
+        removeTask(task);
+        addTask(updated);
+    }
 
-            if(updates.containsKey("EndDate")){
-                LocalDate updatedEndDate = (LocalDate) updates.get("EndDate");
-                ((RecurringTask) task).setEndDate(updatedEndDate);
-            }
+    private void validate(final Task task){
+        if(!TaskTypes.getTaskTypeValues().contains(task.getType())){
+            throw new TaskManagerException(String.format("Task type [%s] not supported", task.getType()));
         }
 
-        if(updates.containsKey("Name")){
-            String originalName = task.getName();
-            String updatedName = (String) updates.get("Name");
-            task.setName(updatedName);
-            replaceTask(originalName, task);
+        final List<String> overlaps = schedule.values().stream().filter(t -> t.overlap(task)).map(Task::getName).collect(Collectors.toList());
+        if(!overlaps.isEmpty()){
+            throw new TaskManagerException(String.format("Task [%s] overlaps with tasks: %s", task.getName(), overlaps.toString()));
         }
 
     }
 
-    private Task replaceTask(String original, Task replacement){
-        Task og = removeTask(original);
-        addTask(replacement);
-
-        return og;
-    }
-
-    private void validateUniqueness(Task task){
-        if(tasks.containsKey(task.getName()) || schedule.containsKey(task)){
-            throw new TaskManagerException(String.format(TASK_ALREADY_EXISTS_ERROR_MESSAGE_FORMAT, task.getName()));
-        }
-    }
-
-    private void validate(Task task){
-        try {
-            TaskValidator.validateTaskTypeSupported(task);
-            TaskValidator.validateNoTaskOverlap(task, schedule.values());
-        } catch (RuntimeException e){
-            throw new TaskManagerException(e);
-        }
-    }
-
-    private Task parseTask(Map<String, Object> data){
+    private Task parseTask(final Map<String, Object> data){
         return parseTaskData(data.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> String.valueOf(e.getValue()))));
     }
 
-    private Task parseTaskData(Map<String, String> data){
-        String name = data.get("Name");
-        String type = data.get("Type");
-        LocalDate date = TaskParser.parseDate(data.get("Date"));
-        LocalTime startTime = TaskParser.parseTime(data.get("StartTime"));
-        TemporalAmount duration = TaskParser.parseDuration(data.get("Duration"));
+    private Task parseTaskData(final Map<String, String> data){
+        final String name = data.get("Name");
+        final String type = data.get("Type");
+        final LocalTime startTime = TaskParser.parseTime(data.get("StartTime"));
+        final TemporalAmount duration = TaskParser.parseDuration(data.get("Duration"));
 
-        Type ptype = TaskTypes.getTaskType(type);
+        LocalDate date;
+        if(data.containsKey("Data")){
+            date = TaskParser.parseDate(data.get("Date"));
+        } else if(data.containsKey("StartDate")){
+            date = TaskParser.parseDate(data.get("StartDate"));
+        } else {
+            throw new TaskManagerException(String.format("There was an issue parsing the task data for task: [%s]", name));
+        }
+
+        final Type ptype = TaskTypes.getTaskType(type);
         if(ptype == TransientTasks.class){
             return new TransientTask(name, type, date, startTime, duration);
         } else if (ptype == AntiTasks.class){

@@ -1,6 +1,5 @@
 package com.edu.cpp.cs.cs3560.model.tasks.trans;
 
-import com.edu.cpp.cs.cs3560.model.tasks.AbstractTask;
 import com.edu.cpp.cs.cs3560.model.tasks.NonRecurringTask;
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import com.edu.cpp.cs.cs3560.model.tasks.anti.AntiTask;
@@ -9,28 +8,46 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.time.Duration;
+
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAmount;
-import java.util.Objects;
 
-public class TransientTask extends NonRecurringTask implements Task {
 
+public class TransientTask extends NonRecurringTask implements Task, Comparable<Task> {
 
     public TransientTask(String name, String type, LocalDate date, LocalTime startTime, TemporalAmount duration) {
         super(name, type, date, startTime, duration);
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean overlap(final Task other){
+        if(this.equals(other)) return false;
+
+        if(other.getClass() == AntiTask.class) return false;
+
+        return (this.getDateTime().isBefore(other.getEndDateTime()) && this.getEndDateTime().isAfter(other.getDateTime()));
+    }
+
+    @Override
+    public boolean matchInterval(final Task other){
+        if(this.equals(other)) return false;
+
+        if(other.getClass() == AntiTask.class) return false;
+
+        return this.getDateTime().equals(other.getDateTime()) && this.getDuration().equals(other.getDuration());
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
         if (obj == null) { return false; }
         if (obj == this) { return true; }
         if (obj.getClass() != getClass()) {
             return false;
         }
 
-        TransientTask other = (TransientTask) obj;
+        final TransientTask other = (TransientTask) obj;
         return new EqualsBuilder()
                 .append(name, other.name)
                 .append(type, other.type)
@@ -51,7 +68,6 @@ public class TransientTask extends NonRecurringTask implements Task {
                 .toHashCode();
     }
 
-
     @Override
     public String toString(){
         return prettyToString(
@@ -64,6 +80,5 @@ public class TransientTask extends NonRecurringTask implements Task {
                         .toString()
         );
     }
-
 
 }
