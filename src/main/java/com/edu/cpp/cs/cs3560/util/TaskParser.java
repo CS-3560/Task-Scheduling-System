@@ -1,3 +1,10 @@
+// =====================================================================================================================
+// TaskParser.java
+// =====================================================================================================================
+/* About:
+ *      This class formats task information to ensure correct syntax.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.util;
 
 import java.time.Duration;
@@ -23,18 +30,18 @@ public final class TaskParser {
         return parseTime(Double.parseDouble(time));
     }
 
-    public static LocalTime parseTime(final double time){
+    public static LocalTime parseTime(final double time) {
         final int hour = (int) time;
         final int minute = (int) ((time - hour) * 60);
 
         return LocalTime.of(hour, minute);
     }
 
-    public static TemporalAmount parseDuration(final String duration){
+    public static TemporalAmount parseDuration(final String duration) {
         return parseDuration(Double.parseDouble(duration));
     }
 
-    public static TemporalAmount parseDuration(final double duration){
+    public static TemporalAmount parseDuration(final double duration) {
         final long hours = (long) duration;
         final long minutes = (long) ((duration - hours) * 60);
 
@@ -49,17 +56,17 @@ public final class TaskParser {
         return date.format(formatter);
     }
 
-    public static double parseTimeToDouble(final LocalTime time){
+    public static double parseTimeToDouble(final LocalTime time) {
         return calculateDuration(time.getHour(), time.getMinute());
     }
 
-    public static double parseDuration(final TemporalAmount amount){
+    public static double parseDuration(final TemporalAmount amount) {
         final Duration duration = Duration.from(amount);
 
         return calculateDuration(duration.toHoursPart(), duration.toMinutesPart());
     }
 
-    public static boolean isValidDateFormat(final String date){
+    public static boolean isValidDateFormat(final String date) {
         try {
             parseDate(date);
         } catch (DateTimeParseException e){
@@ -69,7 +76,7 @@ public final class TaskParser {
         return true;
     }
 
-    public static DateTimeFormatter getFormatter(){ return formatter; }
+    public static DateTimeFormatter getFormatter() { return formatter; }
 
     private static double calculateDuration(final double hour, final double minute){
         return hour + (minute / 60.0);

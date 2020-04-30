@@ -1,3 +1,12 @@
+// =====================================================================================================================
+// RecurringTask.java
+// =====================================================================================================================
+/* About:
+ *      This class handles the creation of Recurring Tasks.
+ *
+ *      Implements the Task.java interface and inherits methods from AbstractTask.java
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.model.tasks.recurring;
 
 import com.edu.cpp.cs.cs3560.model.tasks.AbstractTask;

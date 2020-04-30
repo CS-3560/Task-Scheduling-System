@@ -1,3 +1,11 @@
+// =====================================================================================================================
+// TaskModelManager.java
+// =====================================================================================================================
+/* About:
+ *      This class receives orders from the controller (TaskSchedulerEngine.java) for task manipulation.
+ *      Manipulations include creating, viewing, editing, and deleting tasks.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.model.manager;
 
 import com.edu.cpp.cs.cs3560.util.TaskParser;

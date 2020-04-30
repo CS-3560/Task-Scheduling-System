@@ -1,3 +1,12 @@
+// =====================================================================================================================
+// JSONUtils.java
+// =====================================================================================================================
+/* About:
+ *      A collection of JSON utilities.
+ *
+ *      Unimplemented
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.util;
 
 import java.util.Map;
@@ -6,7 +15,6 @@ import java.util.stream.Collectors;
 public final class JSONUtils {
 
     private JSONUtils(){}
-
 
     public static String toJSON(Map<String, ?> map){
         return toString(map, "\":\"", "\",\"", "{\"", "\"}");

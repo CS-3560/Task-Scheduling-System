@@ -1,3 +1,12 @@
+// =====================================================================================================================
+// AntiTask.java
+// =====================================================================================================================
+/* About:
+ *      This class handles the creation of AntiTasks.
+ *
+ *      Implements the Task.java interface and inherits methods from NonRecurringTask.java.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.model.tasks.anti;
 
 import com.edu.cpp.cs.cs3560.model.tasks.NonRecurringTask;

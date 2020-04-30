@@ -1,3 +1,12 @@
+// =====================================================================================================================
+// TransientTask.java
+// =====================================================================================================================
+/* About:
+ *      This class handles the creation of transient tasks.
+ *
+ *      Implements the Task.java interface and inherits methods from NonRecurringTask.java.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.model.tasks.trans;
 
 import com.edu.cpp.cs.cs3560.model.tasks.NonRecurringTask;

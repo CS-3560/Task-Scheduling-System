@@ -1,3 +1,12 @@
+// =====================================================================================================================
+// RecurringTransientTask.java
+// =====================================================================================================================
+/* About:
+ *      This class handles the creation of recurring task instances.
+ *
+ *      An extension of RecurringTask.java.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.model.tasks.recurring;
 
 import com.edu.cpp.cs.cs3560.model.tasks.Task;

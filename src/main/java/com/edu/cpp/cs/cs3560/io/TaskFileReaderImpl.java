@@ -1,3 +1,13 @@
+// =====================================================================================================================
+// TaskFileReaderImpl.java
+// =====================================================================================================================
+/* About:
+ *      This class navigates along the user provided file path to read the JSON file specified.
+ *
+ *      This class interacts with TaskTypeDeserializer to convert the stream of bits into an object that is usuable with
+ *      the projects various methods.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.io;
 
 import com.edu.cpp.cs.cs3560.util.TaskDeserializer;

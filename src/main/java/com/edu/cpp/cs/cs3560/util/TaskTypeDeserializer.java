@@ -1,5 +1,12 @@
+// =====================================================================================================================
+// TaskTypeDeserializer.java
+// =====================================================================================================================
+/* About:
+ *      This class is designed to take a stream of bits and convert them into an object for use throughout the code.
+ *      Used when the user wishes to read a schedule from a file.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.util;
-
 
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import com.edu.cpp.cs.cs3560.model.tasks.anti.AntiTask;

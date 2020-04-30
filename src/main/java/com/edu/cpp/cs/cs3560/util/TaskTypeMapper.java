@@ -1,3 +1,13 @@
+// =====================================================================================================================
+// TaskTypeMapper.java
+// =====================================================================================================================
+/* About:
+ *      This class is designed to be used when updating the information of a task.
+ *      Takes the Map<String, Object> data as a parameter.
+ *
+ *      Implements the TaskMapper.java interface.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.util;
 
 import com.edu.cpp.cs.cs3560.model.tasks.Task;

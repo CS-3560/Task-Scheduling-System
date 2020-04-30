@@ -1,3 +1,10 @@
+// =====================================================================================================================
+// PSSOperation.java
+// =====================================================================================================================
+/* About:
+ *      An operation object is created by TaskSchedulingEngine.java to determine the user's choice of operation.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.model.types;
 
 import com.google.common.collect.ImmutableMap;
@@ -31,7 +38,6 @@ public final class PSSOperation {
         private final Map<String, Object> data = new LinkedHashMap<>();
 
         private PSSOperationType type;
-
 
         private Builder(){}
 

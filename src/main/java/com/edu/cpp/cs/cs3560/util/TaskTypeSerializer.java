@@ -1,3 +1,11 @@
+// =====================================================================================================================
+// TaskTypeSerializer.java
+// =====================================================================================================================
+/* About:
+*       This class is designed to take an object and convert it into a stream of bits for file IO.
+*       Used in storing our tasks and schedules to the appropriate JSON file format.
+* */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.util;
 
 import com.edu.cpp.cs.cs3560.model.tasks.Task;

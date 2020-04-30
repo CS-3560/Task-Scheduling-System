@@ -1,6 +1,20 @@
+// =====================================================================================================================
+// TaskTypes.java
+// =====================================================================================================================
+/* About:
+ *      This class cooperates with TaskModelManager.java create the user's desired task.
+ *
+ *      Sends the different types of tasks a user can create:
+ *      Recurring:          Transient:              AntiTask:
+ *          - Class             - Visit                 -Cancellation
+ *          - Study             - Shopping
+ *          - Sleep             - Appointment
+ *          - Exercise
+ *          - Work
+ *          - Meal
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.model.types;
-
-
 
 import com.edu.cpp.cs.cs3560.model.tasks.anti.AntiTask;
 import com.edu.cpp.cs.cs3560.model.tasks.recurring.RecurringTask;
@@ -71,7 +85,6 @@ public final class TaskTypes {
         MEAL("Meal");
 
         public final String type;
-
 
         RecurringTasks(String type) {
             this.type = type;

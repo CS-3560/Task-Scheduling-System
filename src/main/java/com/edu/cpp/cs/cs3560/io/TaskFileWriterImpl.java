@@ -1,3 +1,13 @@
+// =====================================================================================================================
+// TaskFileWriterImpl.java
+// =====================================================================================================================
+/* About:
+ *      This class creates/writes to a JSON file.
+ *
+ *      This class interacts with TaskTypeSerializer.java to write tasks and schedules to the JSON file.
+ *      If the specified does not exist, this class will create a JSON at the user provided file path and file name.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.io;
 
 import com.edu.cpp.cs.cs3560.util.TaskSerializer;

@@ -1,3 +1,13 @@
+// =====================================================================================================================
+// TextTaskView.java
+// =====================================================================================================================
+/* About:
+ *      This class is designed to display content to the screen for the end user to both interact with and verify
+ *      the correctness of the project.
+ *
+ *      Primary role is to display the menu for the user to interact with and relay the user's choice to the controller.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.view;
 
 import com.edu.cpp.cs.cs3560.util.TaskSerializer;

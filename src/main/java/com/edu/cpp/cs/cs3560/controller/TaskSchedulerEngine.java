@@ -1,3 +1,13 @@
+// =====================================================================================================================
+// TaskSchedulerEngine.java
+// =====================================================================================================================
+/* About:
+ *      The "brain" of our project, this class is designed to be the central hub of our project.
+ *
+ *      Our Controller calls view to display the user menu and retrieve user input for the controller to make a
+ *      decision about which methods to call when.
+ * */
+// =====================================================================================================================
 package com.edu.cpp.cs.cs3560.controller;
 
 import com.edu.cpp.cs.cs3560.io.TaskFileReader;
@@ -20,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+// Main Task Scheduling Class implementing the Engine Interface
 public class TaskSchedulerEngine implements Engine {
     private final TaskManager manager;
     private final TaskView view;
@@ -27,7 +38,7 @@ public class TaskSchedulerEngine implements Engine {
     private final TaskFileWriter writer;
     private final TaskMapper mapper;
 
-
+    // Constructor
     public TaskSchedulerEngine(final TaskManager manager, final TaskView view, final TaskFileReader reader, final TaskFileWriter writer, final TaskMapper mapper) {
         this.manager = manager;
         this.view = view;
@@ -37,21 +48,25 @@ public class TaskSchedulerEngine implements Engine {
     }
 
     @Override
-    public void run(){
+    public void run() {
         try{
             runEngine();
-        } catch (Exception e){
+        } catch (Exception e) {
             view.displayError(e.getMessage());
             runEngine();
         }
     }
 
-    private void runEngine(){
+    // This function calls view to display menu
+    // and retrieves user option.
+    private void runEngine() {
         PSSOperation operation;
         do{
             operation = view.getOperation();
 
             final Map<String, Object> data = operation.getData();
+
+            // Based on user input, controller will select the correct function
             switch (operation.getType()){
                 case CREATE_TASK:
                     createTask(data);
@@ -92,7 +107,7 @@ public class TaskSchedulerEngine implements Engine {
         System.exit(0);
     }
 
-    private void createTask(final Map<String, Object> data){
+    private void createTask(final Map<String, Object> data) {
         try {
             manager.addTask(data);
             view.displayMessage("Task added.");
@@ -101,7 +116,7 @@ public class TaskSchedulerEngine implements Engine {
         }
     }
 
-    private void viewTask(final Map<String, Object> data){
+    private void viewTask(final Map<String, Object> data) {
         try {
             view.displayTask(manager.getTask(String.valueOf(data.get("Name"))));
         } catch (RuntimeException e){
@@ -109,7 +124,7 @@ public class TaskSchedulerEngine implements Engine {
         }
     }
 
-    private void deleteTask(final Map<String, Object> data){
+    private void deleteTask(final Map<String, Object> data) {
         try {
             view.displayTask(manager.removeTask(String.valueOf(data.get("Name"))));
             view.displayMessage("Task Removed.");
@@ -118,7 +133,7 @@ public class TaskSchedulerEngine implements Engine {
         }
     }
 
-    private void updateTask(final Map<String, Object> data){
+    private void updateTask(final Map<String, Object> data) {
         try {
             final String name = String.valueOf(data.get("Name"));
             if(manager.taskExists(name)){
@@ -134,7 +149,7 @@ public class TaskSchedulerEngine implements Engine {
         }
     }
 
-    private void schedule(final Map<String, Object> data){
+    private void schedule(final Map<String, Object> data) {
         try {
             final List<Task> schedule = getSchedule(data);
 
@@ -153,7 +168,7 @@ public class TaskSchedulerEngine implements Engine {
         }
     }
 
-    private void readFromFile(final Map<String, Object> data){
+    private void readFromFile(final Map<String, Object> data) {
         try {
             readFromFile(String.valueOf(data.get("File"))).forEach(manager::addTask);
         } catch (RuntimeException e){
@@ -161,7 +176,7 @@ public class TaskSchedulerEngine implements Engine {
         }
     }
 
-    private List<Task> readFromFile(final String file){
+    private List<Task> readFromFile(final String file) {
         try {
             return reader.read(file);
         } catch (IOException e){
@@ -171,14 +186,14 @@ public class TaskSchedulerEngine implements Engine {
         return Collections.emptyList();
     }
 
-    private void writeToFile(final Map<String, Object> data){
+    private void writeToFile(final Map<String, Object> data) {
         final List<Task> tasks = manager.getAllTasks();
         Collections.sort(tasks);
 
         writeToFile(String.valueOf(data.get("File")), tasks);
     }
 
-    private void writeToFile(final String file, final Collection<Task> tasks){
+    private void writeToFile(final String file, final Collection<Task> tasks) {
         try {
             writer.write(file, tasks);
         } catch (IOException e) {
@@ -186,7 +201,7 @@ public class TaskSchedulerEngine implements Engine {
         }
     }
 
-    private List<Task> getSchedule(final Map<String, Object> data){
+    private List<Task> getSchedule(final Map<String, Object> data) {
         try {
             final Object type = data.get("Type");
             if (type.equals("WHOLE")) {
@@ -211,7 +226,7 @@ public class TaskSchedulerEngine implements Engine {
         }
     }
 
-    private List<Task> getSchedule(final LocalDateTime start, final LocalDateTime end){
+    private List<Task> getSchedule(final LocalDateTime start, final LocalDateTime end) {
         final List<Task> schedule = new ArrayList<>();
         for(final Task task : manager.getAllTasks()){
             final LocalDateTime tstart = LocalDateTime.of(task.getDate(), task.getStartTime());
