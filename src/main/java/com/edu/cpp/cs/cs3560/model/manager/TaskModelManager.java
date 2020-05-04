@@ -198,32 +198,36 @@ public class TaskModelManager implements TaskManager {
     }
 
     private Task parseTaskData(final Map<String, String> data){
-        final String name = data.get("Name");
-        final String type = data.get("Type");
-        final LocalTime startTime = TaskParser.parseTime(data.get("StartTime"));
-        final TemporalAmount duration = TaskParser.parseDuration(data.get("Duration"));
+        try {
+            final String name = data.get("Name");
+            final String type = data.get("Type");
+            final LocalTime startTime = TaskParser.parseTime(data.get("StartTime"));
+            final TemporalAmount duration = TaskParser.parseDuration(data.get("Duration"));
 
-        LocalDate date;
-        if(data.containsKey("Date")){
-            date = TaskParser.parseDate(data.get("Date"));
-        } else if(data.containsKey("StartDate")){
-            date = TaskParser.parseDate(data.get("StartDate"));
-        } else {
-            throw new TaskManagerException(String.format("There was an issue parsing the task data for task: [%s]", name));
-        }
+            LocalDate date;
+            if (data.containsKey("Date")) {
+                date = TaskParser.parseDate(data.get("Date"));
+            } else if (data.containsKey("StartDate")) {
+                date = TaskParser.parseDate(data.get("StartDate"));
+            } else {
+                throw new TaskManagerException(String.format("There was an issue parsing the task date for task: [%s]", name));
+            }
 
-        final Type ptype = TaskTypes.getTaskType(type);
-        if(ptype == TransientTasks.class){
-            return new TransientTask(name, type, date, startTime, duration);
-        } else if (ptype == AntiTasks.class){
-            return new AntiTask(name, type, date, startTime, duration);
-        } else if(ptype == RecurringTasks.class){
-            LocalDate endDate = TaskParser.parseDate(data.get("EndDate"));
-            Frequency frequency = Frequency.getFrequency(Integer.parseInt(data.get("Frequency")));
+            final Type ptype = TaskTypes.getTaskType(type);
+            if (ptype == TransientTasks.class) {
+                return new TransientTask(name, type, date, startTime, duration);
+            } else if (ptype == AntiTasks.class) {
+                return new AntiTask(name, type, date, startTime, duration);
+            } else if (ptype == RecurringTasks.class) {
+                LocalDate endDate = TaskParser.parseDate(data.get("EndDate"));
+                Frequency frequency = Frequency.getFrequency(Integer.parseInt(data.get("Frequency")));
 
-            return new RecurringTask(name, type, date, startTime, duration, endDate, frequency);
-        } else {
-            throw new IllegalArgumentException("Invalid Task Type");
+                return new RecurringTask(name, type, date, startTime, duration, endDate, frequency);
+            } else {
+                throw new IllegalArgumentException("Invalid Task Type");
+            }
+        } catch (RuntimeException e){
+            throw new TaskManagerException(String.format("There was an error parsing the task: [%s]", e.getMessage()));
         }
     }
 
