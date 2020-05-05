@@ -17,6 +17,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -24,10 +25,12 @@ import java.time.temporal.TemporalAmount;
 import java.util.LinkedList;
 import java.util.List;
 
-public class RecurringTask extends AbstractTask implements Task, Comparable<Task> {
-    protected transient final LocalDate startDate;
-    protected transient final LocalDate endDate;
-    protected transient final Frequency frequency;
+public class RecurringTask extends AbstractTask implements Task, Comparable<Task>, Serializable {
+    private static final long serialVersionUID = -3780465507157859133L;
+
+    protected final LocalDate startDate;
+    protected final LocalDate endDate;
+    protected final Frequency frequency;
 
     public RecurringTask(
             final String name,

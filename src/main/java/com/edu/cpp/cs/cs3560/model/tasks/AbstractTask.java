@@ -9,6 +9,7 @@ package com.edu.cpp.cs.cs3560.model.tasks;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -16,7 +17,8 @@ import java.time.format.DateTimeFormatter;
 
 import java.time.temporal.TemporalAmount;
 
-public abstract class AbstractTask implements Task, Comparable<Task> {
+public abstract class AbstractTask implements Task, Comparable<Task>, Serializable {
+    private static final long serialVersionUID = -3588677189383077433L;
 
     @SerializedName("Name")
     protected final String name;

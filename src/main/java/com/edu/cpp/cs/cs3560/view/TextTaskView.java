@@ -26,6 +26,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -135,13 +136,13 @@ public class TextTaskView implements TaskView {
 
         final PSSOperation.Builder builder = PSSOperation.builder();
         if(StringUtils.equalsAnyIgnoreCase(operation, CREATE_TASK_PSS_OPERATION, VIEW_TASK_PSS_OPERATION, DELETE_TASK_PSS_OPERATION, EDIT_TASK_PSS_OPERATION)){
-            if(operation.equalsIgnoreCase(CREATE_TASK_PSS_OPERATION)){
+            if(StringUtils.equalsIgnoreCase(operation, CREATE_TASK_PSS_OPERATION)){
                 builder.withType(PSSOperationType.CREATE_TASK);
-            } else if(operation.equalsIgnoreCase(VIEW_TASK_PSS_OPERATION)){
+            } else if(StringUtils.equalsIgnoreCase(operation, VIEW_TASK_PSS_OPERATION)){
                 builder.withType(PSSOperationType.VIEW_TASK);
-            } else if(operation.equalsIgnoreCase(DELETE_TASK_PSS_OPERATION)){
+            } else if(StringUtils.equalsIgnoreCase(operation, DELETE_TASK_PSS_OPERATION)){
                 builder.withType(PSSOperationType.DELETE_TASK);
-            } else if(operation.equalsIgnoreCase(EDIT_TASK_PSS_OPERATION)){
+            } else if(StringUtils.equalsIgnoreCase(operation, EDIT_TASK_PSS_OPERATION)){
                 builder.withType(PSSOperationType.EDIT_TASK);
             } else {
                 throw new RuntimeException(INVALID_INPUT_ERROR_MESSAGE);
@@ -160,9 +161,9 @@ public class TextTaskView implements TaskView {
             final Map<String, Object> data = getScheduleInfo(operation);
 
             final Object op = data.get(OPERATION_KEY);
-            if(op.equals(VIEW_OPERATION_VALUE)){
+            if(Objects.equals(op, VIEW_OPERATION_VALUE)){
                 builder.withType(PSSOperationType.VIEW_SCHEDULE);
-            } else if(op.equals(WRITE_OPERATION_VALUE)){
+            } else if(Objects.equals(op, WRITE_OPERATION_VALUE)){
                 builder.withType(PSSOperationType.WRITE_SCHEDULE);
             } else {
                 throw new RuntimeException(INVALID_INPUT_ERROR_MESSAGE);
@@ -302,11 +303,11 @@ public class TextTaskView implements TaskView {
         options.put(SCHEDULE_START_DATE_KEY, ui.getInput(SCHEDULE_START_DATE_PROMPT));
 
         String type;
-        if(input.equalsIgnoreCase(DAY_SCHEDULE_PSS_OPERATION)){
+        if(StringUtils.equalsIgnoreCase(input, DAY_SCHEDULE_PSS_OPERATION)){
             type = DAY_SCHEDULE_OPERATION_VALUE;
-        } else if(input.equalsIgnoreCase(WEEK_SCHEDULE_PSS_OPERATION)){
+        } else if(StringUtils.equalsIgnoreCase(input, WEEK_SCHEDULE_PSS_OPERATION)){
             type = WEEK_SCHEDULE_OPERATION_VALUE;
-        } else if(input.equalsIgnoreCase(MONTH_SCHEDULE_PSS_OPERATION)){
+        } else if(StringUtils.equalsIgnoreCase(input, MONTH_SCHEDULE_PSS_OPERATION)){
             type = MONTH_SCHEDULE_OPERATION_VALUE;
         } else {
             throw new RuntimeException(INVALID_INPUT_ERROR_MESSAGE);
@@ -315,14 +316,6 @@ public class TextTaskView implements TaskView {
         options.put(TYPE_KEY, type);
 
         return options;
-    }
-
-    private String parseOperationInput(final String input){
-        return (NumberUtils.isDigits(input) ? OPERATIONS.get(Integer.parseInt(input)) : input).toUpperCase();
-    }
-
-    private Collection<String> getValidOperations(){
-        return OPERATIONS.values().stream().map(String::toUpperCase).collect(Collectors.toSet());
     }
 
     @Override
@@ -342,9 +335,23 @@ public class TextTaskView implements TaskView {
         for(final int key : keys){
             sb.append(String.format("\n\t%s. %s", StringUtils.leftPad(String.valueOf(key), 2), OPERATIONS.get(key)));
         }
-        sb.append(String.format("\n\tType \"Quit\" or \"Q\" to exit"));
+        sb.append("\n\tType \"Quit\" or \"Q\" to exit");
 
         return sb.append(MENU_OPTIONS_PROMPT).toString();
+    }
+
+    private Collection<String> getValidOperations(){
+        return OPERATIONS.values().stream()
+                .map(String::toUpperCase)
+                .collect(Collectors.toSet());
+    }
+
+    private String parseOperationInput(final String input){
+        return StringUtils.upperCase(
+                NumberUtils.isDigits(input)
+                        ? OPERATIONS.get(Integer.parseInt(input))
+                        : input
+        );
     }
 
 }

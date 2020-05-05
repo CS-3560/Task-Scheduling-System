@@ -40,9 +40,9 @@ public class TaskTypeSerializer implements TaskSerializer {
     private static final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
-            .addDeserializationExclusionStrategy(TaskExclusionStrategy.getStrategy())
-            .registerTypeAdapter(TransientTask.class, TaskTypeAdapter.getTaskTypeAdapter())
-            .registerTypeAdapter(RecurringTransientTask.class, TaskTypeAdapter.getTaskTypeAdapter())
+            .addDeserializationExclusionStrategy(TaskExclusionStrategy.get())
+            .registerTypeAdapter(TransientTask.class, TaskTypeAdapter.get())
+            .registerTypeAdapter(RecurringTransientTask.class, TaskTypeAdapter.get())
             .create();
 
 
@@ -59,7 +59,7 @@ public class TaskTypeSerializer implements TaskSerializer {
     private static final class TaskTypeAdapter extends TypeAdapter<Task> {
         private static final TaskTypeAdapter adapter = new TaskTypeAdapter();
 
-        public static TypeAdapter<? extends Task> getTaskTypeAdapter(){
+        public static TypeAdapter<? extends Task> get(){
             return adapter;
         }
 
@@ -167,7 +167,7 @@ public class TaskTypeSerializer implements TaskSerializer {
     private static final class TaskExclusionStrategy implements ExclusionStrategy {
         private static final TaskExclusionStrategy strategy = new TaskExclusionStrategy();
 
-        public static ExclusionStrategy getStrategy(){
+        public static ExclusionStrategy get(){
             return strategy;
         }
 

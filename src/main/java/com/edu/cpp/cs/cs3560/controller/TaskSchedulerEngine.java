@@ -95,8 +95,8 @@ public class TaskSchedulerEngine implements Engine {
                     shutdown();
                     break;
                 default:
-                    throw new RuntimeException("Error while running");
-
+                    view.displayMessage("Invalid Operation. Please Try Again\n");
+                    break;
             }
         } while (operation.getType() != PSSOperationType.QUIT);
 

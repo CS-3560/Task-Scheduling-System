@@ -24,8 +24,17 @@ import java.util.List;
 import java.util.Map;
 
 public class TaskTypeMapper implements TaskMapper {
+    private static final String NAME_KEY = "Name";
+    private static final String TYPE_KEY = "Type";
+    private static final String DATE_KEY = "Date";
+    private static final String START_DATE_KEY = "StartDate";
+    private static final String START_TIME_KEY = "StartTime";
+    private static final String DURATION_KEY = "Duration";
+    private static final String END_DATE_KEY = "EndDate";
+    private static final String FREQUENCY_KEY = "Frequency";
 
 
+    @Override
     public Map<String, Object> toMap(final Task task){
         final Map<String, Object> map = getAsMap(task);
 

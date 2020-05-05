@@ -132,6 +132,11 @@ public class TaskModelManager implements TaskManager {
         schedule.putAll(recurring, recurringTasks);
     }
 
+    @Override
+    public void clear() {
+        schedule.clear();
+        tasks.clear();
+    }
 
     @Override
     public boolean taskExists(final String name){
@@ -186,7 +191,12 @@ public class TaskModelManager implements TaskManager {
             throw new TaskManagerException(String.format("Task type [%s] not supported", task.getType()));
         }
 
-        final List<String> overlaps = schedule.values().stream().filter(t -> t.overlap(task)).map(Task::getName).collect(Collectors.toList());
+        final List<String> overlaps = schedule.values().stream()
+                .filter(t -> t.overlap(task))
+                .map(Task::getName)
+                .collect(Collectors.toList());
+
+
         if(!overlaps.isEmpty()){
             throw new TaskManagerException(String.format("Task [%s] overlaps with tasks: %s", task.getName(), overlaps.toString()));
         }

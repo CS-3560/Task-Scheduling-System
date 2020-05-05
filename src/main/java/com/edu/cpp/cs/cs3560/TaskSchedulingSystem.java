@@ -30,12 +30,7 @@ import com.edu.cpp.cs.cs3560.view.TaskView;
 import com.edu.cpp.cs.cs3560.view.TextTaskView;
 
 
-
 public final class TaskSchedulingSystem {
-
-    public static void main(final String ...args) {
-        start();
-    }
 
     // Create objects to be used throughout the code
     // and call our scheduling engine (Controller)
@@ -61,6 +56,10 @@ public final class TaskSchedulingSystem {
 
         final Engine controller = new TaskSchedulerEngine(manager, view, reader, writer, mapper);
         controller.run();
+    }
+
+    public static void main(final String ...args) {
+        start();
     }
 
 }

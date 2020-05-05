@@ -16,12 +16,15 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAmount;
 
 
-public class AntiTask extends NonRecurringTask implements Task, Comparable<Task> {
+public class AntiTask extends NonRecurringTask implements Task, Comparable<Task>, Serializable {
+
+    private static final long serialVersionUID = -1370378969331151242L;
 
     public AntiTask(final String name, final String type, final LocalDate date, final LocalTime startTime, final TemporalAmount duration) {
         super(name, type, date, startTime, duration);

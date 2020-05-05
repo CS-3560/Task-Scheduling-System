@@ -16,6 +16,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -42,7 +43,7 @@ public class TaskFileReaderImpl implements TaskFileReader {
     @Override
     public List<Task> read(final File file) throws IOException {
         try {
-            return deserializer.deserialize(FileUtils.readFileToString(file, "UTF-8"));
+            return deserializer.deserialize(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
         } catch (IOException e){
             throw new IOException(String.format(IO_ERROR_MESSAGE_FORMAT, file.getName()), e);
         }

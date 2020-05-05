@@ -24,7 +24,8 @@ import java.time.LocalTime;
 import java.time.temporal.TemporalAmount;
 
 
-public class TransientTask extends NonRecurringTask implements Task, Comparable<Task> {
+public class TransientTask extends NonRecurringTask implements Task, Comparable<Task>, Serializable {
+    private static final long serialVersionUID = -3918303880367128541L;
 
     public TransientTask(String name, String type, LocalDate date, LocalTime startTime, TemporalAmount duration) {
         super(name, type, date, startTime, duration);

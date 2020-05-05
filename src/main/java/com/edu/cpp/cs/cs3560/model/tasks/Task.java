@@ -7,12 +7,13 @@
 // =====================================================================================================================
 package com.edu.cpp.cs.cs3560.model.tasks;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAmount;
 
-public interface Task extends Comparable<Task>{
+public interface Task extends Comparable<Task>, Serializable {
 
     String getName();
 
