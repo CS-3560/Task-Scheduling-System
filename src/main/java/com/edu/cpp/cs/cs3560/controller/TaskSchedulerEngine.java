@@ -139,7 +139,7 @@ public class TaskSchedulerEngine implements Engine {
             final String name = String.valueOf(data.get("Name"));
             if(manager.taskExists(name)){
                 final Task original = manager.getTask(name);
-                final Map<String,Object> updated = view.getUpdatedInfo(mapper.toMap(original));
+                final Map<String, Object> updated = view.getUpdatedInfo(mapper.toMap(original));
 
                 manager.updateTask(original, updated);
             } else {

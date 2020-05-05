@@ -12,6 +12,8 @@ package com.edu.cpp.cs.cs3560.util;
 
 import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import com.edu.cpp.cs.cs3560.model.tasks.recurring.Frequency;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Converter;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -33,42 +35,44 @@ public class TaskTypeMapper implements TaskMapper {
     private static final String END_DATE_KEY = "EndDate";
     private static final String FREQUENCY_KEY = "Frequency";
 
+    private static final Converter<String, String> converter = CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL);
+
 
     @Override
     public Map<String, Object> toMap(final Task task){
         final Map<String, Object> map = getAsMap(task);
 
         Map<String, Object> data = new LinkedHashMap<>();
-        if(map.containsKey("name")){
-            data.put("Name", map.get("name"));
+        if(map.containsKey(NAME_KEY)){
+            data.put(NAME_KEY, map.get(NAME_KEY));
         }
 
-        if(map.containsKey("type")){
-            data.put("Type", map.get("type"));
+        if(map.containsKey(TYPE_KEY)){
+            data.put(TYPE_KEY, map.get(TYPE_KEY));
         }
 
-        if(map.containsKey("date")){
-            data.put("Date", TaskParser.parseDateToInteger((LocalDate) map.get("date")));
+        if(map.containsKey(DATE_KEY)){
+            data.put(DATE_KEY, TaskParser.parseDateToInteger((LocalDate) map.get(DATE_KEY)));
         }
 
-        if(map.containsKey("startDate")){
-            data.put("StartDate", TaskParser.parseDateToInteger((LocalDate) map.get("startDate")));
+        if(map.containsKey(START_DATE_KEY)){
+            data.put(START_DATE_KEY, TaskParser.parseDateToInteger((LocalDate) map.get(START_DATE_KEY)));
         }
 
-        if(map.containsKey("startTime")){
-            data.put("StartTime", TaskParser.parseTimeToDouble((LocalTime) map.get("startTime")));
+        if(map.containsKey(START_TIME_KEY)){
+            data.put(START_TIME_KEY, TaskParser.parseTimeToDouble((LocalTime) map.get(START_TIME_KEY)));
         }
 
-        if(map.containsKey("duration")){
-            data.put("Duration", TaskParser.parseDuration((TemporalAmount) map.get("duration")));
+        if(map.containsKey(DURATION_KEY)){
+            data.put(DURATION_KEY, TaskParser.parseDuration((TemporalAmount) map.get(DURATION_KEY)));
         }
 
-        if(map.containsKey("endDate")){
-            data.put("EndDate", TaskParser.parseDateToInteger((LocalDate) map.get("endDate")));
+        if(map.containsKey(END_DATE_KEY)){
+            data.put(END_DATE_KEY, TaskParser.parseDateToInteger((LocalDate) map.get(END_DATE_KEY)));
         }
 
-        if(map.containsKey("frequency")){
-            data.put("Frequency", Frequency.getFrequencyKey((Frequency) map.get("frequency")));
+        if(map.containsKey(FREQUENCY_KEY)){
+            data.put(FREQUENCY_KEY, Frequency.getFrequencyKey((Frequency) map.get(FREQUENCY_KEY)));
         }
 
 
@@ -80,7 +84,7 @@ public class TaskTypeMapper implements TaskMapper {
             final Map<String, Object> data = new LinkedHashMap<>();
             for (final Field field : getFields(task)) {
                 field.setAccessible(true);
-                data.put(field.getName(), field.get(task));
+                data.put(converter.convert(field.getName()), field.get(task));
             }
 
             return data;
@@ -101,11 +105,5 @@ public class TaskTypeMapper implements TaskMapper {
 
         return fields;
     }
-
-
-
-
-
-
 
 }
