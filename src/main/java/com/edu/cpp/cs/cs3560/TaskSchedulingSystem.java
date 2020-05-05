@@ -34,11 +34,7 @@ import com.edu.cpp.cs.cs3560.view.TextTaskView;
 public final class TaskSchedulingSystem {
 
     public static void main(final String ...args) {
-        try {
-            start();
-        } catch (Exception e){
-            start();
-        }
+        start();
     }
 
     // Create objects to be used throughout the code

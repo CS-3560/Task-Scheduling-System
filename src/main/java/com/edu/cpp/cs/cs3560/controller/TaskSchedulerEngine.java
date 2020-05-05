@@ -50,6 +50,7 @@ public class TaskSchedulerEngine implements Engine {
     @Override
     public void run() {
         try{
+            view.displayMessage("Task Scheduling System:");
             runEngine();
         } catch (Exception e) {
             view.displayError(e.getMessage());
@@ -61,7 +62,7 @@ public class TaskSchedulerEngine implements Engine {
     // and retrieves user option.
     private void runEngine() {
         PSSOperation operation;
-        do{
+        do {
             operation = view.getOperation();
 
             final Map<String, Object> data = operation.getData();

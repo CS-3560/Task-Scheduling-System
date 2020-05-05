@@ -1,13 +1,31 @@
 package com.edu.cpp.cs.cs3560;
 
+import com.edu.cpp.cs.cs3560.controller.Engine;
+import com.edu.cpp.cs.cs3560.controller.TaskSchedulerEngine;
+import com.edu.cpp.cs.cs3560.io.TaskFileReader;
+import com.edu.cpp.cs.cs3560.io.TaskFileReaderImpl;
+import com.edu.cpp.cs.cs3560.io.TaskFileWriter;
+import com.edu.cpp.cs.cs3560.io.TaskFileWriterImpl;
+import com.edu.cpp.cs.cs3560.model.manager.TaskManager;
 import com.edu.cpp.cs.cs3560.model.manager.TaskModelManager;
 import com.edu.cpp.cs.cs3560.model.tasks.trans.TransientTask;
-import com.google.common.collect.HashMultimap;
-import org.junit.Before;
+import com.edu.cpp.cs.cs3560.ui.TextUserInterface;
+import com.edu.cpp.cs.cs3560.ui.UserInterface;
+import com.edu.cpp.cs.cs3560.util.TaskDeserializer;
+import com.edu.cpp.cs.cs3560.util.TaskMapper;
+import com.edu.cpp.cs.cs3560.util.TaskSerializer;
+import com.edu.cpp.cs.cs3560.util.TaskTypeDeserializer;
+import com.edu.cpp.cs.cs3560.util.TaskTypeMapper;
+import com.edu.cpp.cs.cs3560.util.TaskTypeSerializer;
+import com.edu.cpp.cs.cs3560.view.TaskView;
+import com.edu.cpp.cs.cs3560.view.TextTaskView;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import org.mockito.Mock;
 
-import java.io.IOException;
+import java.util.Map;
+
+import static java.lang.System.out;
+import static org.mockito.Mockito.when;
 
 
 public class Scenario1Tests {
@@ -21,7 +39,7 @@ public class Scenario1Tests {
     private static final String OVERLAP_ERROR_MESSAGE_1 = "Task [Watch a movie] overlaps with Task [CS3560-Th]";
     private static final String OVERLAP_ERROR_MESSAGE_2 = "Task [Dinner] overlaps with Task [Intern Interview]";
 
-    private static final TransientTask transientTask1 = ScenarioTestsUtils.createTransientTask(
+    private static final TransientTask TRANSIENT_TASK_1 = ScenarioTestsUtils.createTransientTask(
             "Intern Interview",
             "Appointment",
             20200427,
@@ -29,7 +47,15 @@ public class Scenario1Tests {
             2.5
     );
 
-    private static final TransientTask transientTask2 = ScenarioTestsUtils.createTransientTask(
+    private static final Map<String, Object> TRANSIENT_TASK_1_DATA = Map.of(
+            "Name", "Intern Interview",
+            "Type", "Appointment",
+            "Date", "202004247",
+            "StartTime", "17",
+            "Duration", "2.5"
+    );
+
+    private static final TransientTask TRANSIENT_TASK_2 = ScenarioTestsUtils.createTransientTask(
             "Watch a movie",
             "Movie",
             20200429,
@@ -37,7 +63,15 @@ public class Scenario1Tests {
             2
     );
 
-    private static final TransientTask transientTask3 = ScenarioTestsUtils.createTransientTask(
+    private static final Map<String, Object> TRANSIENT_TASK_2_DATA = Map.of(
+            "Name", "Watch a movie",
+            "Type", "Movie",
+            "Date", "20200429",
+            "StartTime", "21.5",
+            "Duration", "2"
+    );
+
+    private static final TransientTask TRANSIENT_TASK_3 = ScenarioTestsUtils.createTransientTask(
             "Watch a movie",
             "Visit",
             20200430,
@@ -45,83 +79,55 @@ public class Scenario1Tests {
             2
     );
 
-    private final TaskModelManager manager = new TaskModelManager();
+    private static final Map<String, Object> TRANSIENT_TASK_3_DATA = Map.of(
+            "Name", "Watch a movie",
+            "Type", "Visit",
+            "Date", "202004430",
+            "StartTime", "18.5",
+            "Duration", "2"
+    );
 
-    @Before
-    public void readSet1() throws IOException {
-        ScenarioTestsUtils.parseFile(ScenarioTestConfig.TEST_SET_1).forEach(manager::addTask);
-    }
 
-    @Test
-    public void deleteTask() {
-        assertTrue(manager.taskExists(DELETE_TASK_NAME));
-        manager.removeTask(DELETE_TASK_NAME);
-        assertFalse(manager.taskExists(DELETE_TASK_NAME));
-        assertFalse(manager.getAllTasks().stream().allMatch(t -> t.getName().equals(DELETE_TASK_NAME)));
-    }
+    @Mock
+    private final UserInterface mui = new TextUserInterface();
 
-    @Test
-    public void addTransientTask1Test(){
-        deleteTask();
+    // For turning streams into objects or vice versa
+    private final TaskSerializer serializer = new TaskTypeSerializer();
+    private final TaskDeserializer deserializer = new TaskTypeDeserializer();
 
-        manager.addTask(transientTask1);
-        assertEquals(manager.getTask(transientTask1.getName()), transientTask1);
-    }
+    // For updating a task
+    private final TaskMapper mapper = new TaskTypeMapper();
 
-    @Test(expected = RuntimeException.class)
-    public void addTransientTask2Test(){
-        addTransientTask1Test();
+    // File IO Objects
+    private final TaskFileReader reader = new TaskFileReaderImpl(deserializer);
+    private final TaskFileWriter writer = new TaskFileWriterImpl(serializer);
 
-        manager.addTask(transientTask2);
-    }
+    private final TaskView view = new TextTaskView(mui, serializer);
 
-    @Test(expected = RuntimeException.class)
-    public void addTransientTask3Test(){
-        addTransientTask1Test();
 
-        manager.addTask(transientTask3);
-    }
+    private final TaskManager manager = new TaskModelManager();
 
-    @Test(expected = RuntimeException.class)
-    public void readFileSet2Test() throws IOException {
-        addTransientTask1Test();
+    private final Engine controller = new TaskSchedulerEngine(manager, view, reader, writer, mapper);
 
-        ScenarioTestsUtils.parseFile(ScenarioTestConfig.TEST_SET_2).forEach(manager::addTask);
-    }
+
+
 
     @Test
-    public void runScenario1Test() throws IOException {
-        //2
-        assertTrue(manager.taskExists(DELETE_TASK_NAME));
-        manager.removeTask(DELETE_TASK_NAME);
-        assertFalse(manager.taskExists(DELETE_TASK_NAME));
-        assertFalse(manager.getAllTasks().stream().allMatch(t -> t.getName().equals(DELETE_TASK_NAME)));
+    public void scenario1Tests(){
+        controller.run();
 
-        //3
-        manager.addTask(transientTask1);
-        assertEquals(manager.getTask(transientTask1.getName()), transientTask1);
+        when(mui.getInput()).thenReturn(ScenarioTestConfig.TEST_SET_1);
 
-        //4
-        try {
-            manager.addTask(transientTask2);
-        } catch (RuntimeException e){
-            assertEquals(INVALID_TASK_TYPE_MESSAGE, e.getMessage());
-        }
+        String ui = mui.getInput();
 
-        //5
-        try {
-            manager.addTask(transientTask3);
-        } catch (RuntimeException e){
-            assertEquals( OVERLAP_ERROR_MESSAGE_1, e.getMessage());
-        }
 
-        //6
-        try {
-            ScenarioTestsUtils.parseFile(ScenarioTestConfig.TEST_SET_2).forEach(manager::addTask);
-        } catch (RuntimeException e){
-            assertEquals(OVERLAP_ERROR_MESSAGE_2, e.getMessage());
-        }
+        out.println(ui);
+
 
     }
+
+
+
+
 
 }

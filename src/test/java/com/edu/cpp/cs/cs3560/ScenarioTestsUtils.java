@@ -8,7 +8,9 @@ import com.edu.cpp.cs.cs3560.model.tasks.recurring.RecurringTask;
 import com.edu.cpp.cs.cs3560.model.tasks.trans.TransientTask;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class ScenarioTestsUtils {
 
@@ -46,11 +48,6 @@ public final class ScenarioTestsUtils {
             int frequency
     ){
         return new RecurringTask(name, type, TaskParser.parseDate(startDate), TaskParser.parseTime(startTime), TaskParser.parseDuration(duration), TaskParser.parseDate(endDate), Frequency.getFrequency(frequency));
-    }
-
-    public static List<Task> parseFile(String file) throws IOException {
-        return null;
-        // return parser.parseTasks(parser.parseFile(file));
     }
 
 }

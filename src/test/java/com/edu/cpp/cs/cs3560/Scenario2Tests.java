@@ -38,42 +38,5 @@ public class Scenario2Tests {
     private final TaskModelManager manager = new TaskModelManager();
 
 
-    @Before
-    public void readFileSet2() throws IOException {
-        ScenarioTestsUtils.parseFile(ScenarioTestConfig.TEST_SET_2).forEach(manager::addTask);
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void addAntiTask1Test(){
-        manager.addTask(antiTask1);
-    }
-
-    @Test
-    public void addAntiTask2Test(){
-        //System.out.println(antiTask2.getDuration() + "\n");
-        //manager.getAllTasks().stream().filter(t -> t.getName().equals("Dinner")).map(Task::getDuration).forEach(System.out::println);
-        //manager.getAllTasks().stream().map(Task::getName).forEach(System.out::println);
-        manager.addTask(antiTask2);
-    }
-
-    @Test
-    public void readFileSet1() throws IOException {
-        addAntiTask2Test();
-
-        ScenarioTestsUtils.parseFile(ScenarioTestConfig.TEST_SET_1).forEach(manager::addTask);
-    }
-
-    @Test
-    public void runScenario2Test() throws IOException {
-        try {
-            manager.addTask(antiTask1);
-        } catch (RuntimeException e){
-            assertEquals(ERROR_MESSAGE_1, e.getMessage());
-        }
-
-        manager.addTask(antiTask2);
-
-        ScenarioTestsUtils.parseFile(ScenarioTestConfig.TEST_SET_1).forEach(manager::addTask);
-    }
 
 }
