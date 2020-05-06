@@ -89,6 +89,7 @@ public final class PSSOperation {
         READ_FROM_FILE,
         VIEW_SCHEDULE,
         WRITE_SCHEDULE,
+        VIEW_ALL_TASKS,
         QUIT
     }
 

@@ -58,6 +58,8 @@ public final class TaskSchedulingSystem {
         controller.run();
     }
 
-    public static void main(final String ...args) { start(); }
+    public static void main(final String ...args) {
+            start();
+    }
 
 }

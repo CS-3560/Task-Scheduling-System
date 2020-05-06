@@ -86,7 +86,7 @@ public class TransientTask extends NonRecurringTask implements Task, Comparable<
                         .append("Type", type)
                         .append("Date", parseDateToInteger(date))
                         .append("StartTime", parseTimeToDouble(startTime))
-                        .append("Duration", duration)
+                        .append("Duration", parseDuration(duration))
                         .toString()
         );
     }

@@ -18,6 +18,7 @@ import com.edu.cpp.cs.cs3560.model.types.TaskTypes;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes.AntiTasks;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes.RecurringTasks;
 import com.edu.cpp.cs.cs3560.model.types.TaskTypes.TransientTasks;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.FieldNamingPolicy;
@@ -28,6 +29,7 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -35,6 +37,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAmount;
 import java.util.Collection;
+import java.util.Set;
 
 public class TaskTypeSerializer implements TaskSerializer {
     private static final Gson gson = new GsonBuilder()
@@ -42,9 +45,10 @@ public class TaskTypeSerializer implements TaskSerializer {
             .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
             .addDeserializationExclusionStrategy(TaskExclusionStrategy.get())
             .registerTypeAdapter(TransientTask.class, TaskTypeAdapter.get())
+            .registerTypeAdapter(AntiTask.class, TaskTypeAdapter.get())
+            .registerTypeAdapter(RecurringTask.class, RecurringTaskTypeAdapter.get())
             .registerTypeAdapter(RecurringTransientTask.class, TaskTypeAdapter.get())
             .create();
-
 
     @Override
     public String serialize(final Task task) {
@@ -56,7 +60,7 @@ public class TaskTypeSerializer implements TaskSerializer {
         return gson.toJson(tasks);
     }
 
-    private static final class TaskTypeAdapter extends TypeAdapter<Task> {
+    private static class TaskTypeAdapter extends TypeAdapter<Task> {
         private static final TaskTypeAdapter adapter = new TaskTypeAdapter();
 
         public static TypeAdapter<? extends Task> get(){
@@ -164,7 +168,43 @@ public class TaskTypeSerializer implements TaskSerializer {
 
     }
 
+    private static class RecurringTaskTypeAdapter extends TaskTypeAdapter{
+        private static final TaskTypeAdapter adapter = new RecurringTaskTypeAdapter();
+
+        public static TypeAdapter<? extends Task> get(){
+            return adapter;
+        }
+
+        @Override
+        public void write(final JsonWriter out, final Task value) throws IOException {
+            out.beginObject();
+            if(value.getClass() == RecurringTask.class){
+                final RecurringTask recurring = (RecurringTask) value;
+
+                out.name("Name").value(recurring.getName());
+                out.name("Type").value(recurring.getType());
+                out.name("StartDate").value(TaskParser.parseDateToInteger(recurring.getStartDate()));
+                out.name("StartTime").value(TaskParser.parseTimeToDouble(recurring.getStartTime()));
+                out.name("Duration").value(TaskParser.parseDuration(recurring.getDuration()));
+                out.name("EndDate").value(TaskParser.parseDateToInteger(recurring.getEndDate()));
+                out.name("Frequency").value(recurring.getFrequency().getKey());
+            } else {
+                out.name("Name").value(value.getName());
+                out.name("Type").value(value.getType());
+                out.name("Date").value(TaskParser.parseDateToInteger(value.getDate()));
+                out.name("StartTime").value(TaskParser.parseTimeToDouble(value.getStartTime()));
+                out.name("Duration").value(TaskParser.parseDuration(value.getDuration()));
+            }
+            out.endObject();
+        }
+    }
+
     private static final class TaskExclusionStrategy implements ExclusionStrategy {
+        private static final Set<Type> EXCLUDED = Set.of(
+                RecurringTask.class,
+                AntiTask.class
+        );
+
         private static final TaskExclusionStrategy strategy = new TaskExclusionStrategy();
 
         public static ExclusionStrategy get(){

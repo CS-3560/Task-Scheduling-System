@@ -67,7 +67,7 @@ public class AntiTask extends NonRecurringTask implements Task, Comparable<Task>
                         .append("Type", type)
                         .append("Date", parseDateToInteger(date))
                         .append("StartTime", parseTimeToDouble(startTime))
-                        .append("Duration", duration)
+                        .append("Duration", parseDuration(duration))
                         .toString()
         );
     }

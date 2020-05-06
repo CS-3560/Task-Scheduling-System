@@ -19,10 +19,13 @@ import com.edu.cpp.cs.cs3560.model.tasks.Task;
 import com.edu.cpp.cs.cs3560.model.types.PSSOperation;
 import com.edu.cpp.cs.cs3560.model.types.PSSOperation.PSSOperationType;
 import com.edu.cpp.cs.cs3560.view.TaskView;
+import org.apache.commons.beanutils.ConvertUtils;
 
 import java.io.IOException;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,12 +48,14 @@ public class TaskSchedulerEngine implements Engine {
         this.reader = reader;
         this.writer = writer;
         this.mapper = mapper;
+
+        readFromFile("/Users/bryanayala/Desktop/Homework4/Set1.json").forEach(manager::addTask);
     }
 
     @Override
     public void run() {
         try{
-            view.displayMessage("Task Scheduling System:");
+            view.displayMessage("\nTask Scheduling System:");
             runEngine();
         } catch (Exception e) {
             view.displayError(e.getMessage());
@@ -81,6 +86,9 @@ public class TaskSchedulerEngine implements Engine {
                 case EDIT_TASK:
                     updateTask(data);
                     break;
+                case VIEW_ALL_TASKS:
+                    viewAllTasks();
+                    break;
                 case READ_FROM_FILE:
                     readFromFile(data);
                     break;
@@ -95,7 +103,7 @@ public class TaskSchedulerEngine implements Engine {
                     shutdown();
                     break;
                 default:
-                    view.displayMessage("Invalid Operation. Please Try Again\n");
+                    view.displayError("Invalid Operation. Please Try Again\n");
                     break;
             }
         } while (operation.getType() != PSSOperationType.QUIT);
@@ -148,6 +156,12 @@ public class TaskSchedulerEngine implements Engine {
         } catch (RuntimeException e){
             view.displayError(String.format("There was a problem updating the task: %s", e.getMessage()));
         }
+    }
+
+    private void viewAllTasks(){
+        final List<Task> tasks = manager.getTasks();
+        Collections.sort(tasks);
+        view.displayTasks(tasks);
     }
 
     private void schedule(final Map<String, Object> data) {
@@ -204,22 +218,13 @@ public class TaskSchedulerEngine implements Engine {
 
     private List<Task> getSchedule(final Map<String, Object> data) {
         try {
-            final Object type = data.get("Type");
-            if (type.equals("WHOLE")) {
+            final TemporalUnit type = (TemporalUnit) ConvertUtils.convert(data.get("Type"), ChronoUnit.class);
+            if(type == ChronoUnit.FOREVER){
                 return manager.getAllTasks();
             }
 
             final LocalDateTime start = TaskParser.parseDate(String.valueOf(data.get("StartDate"))).atStartOfDay();
-            final LocalDateTime end;
-            if (type.equals("DAY")) {
-                end = start.plusDays(1);
-            } else if (type.equals("WEEK")) {
-                end = start.plusWeeks(1);
-            } else if (type.equals("MONTH")) {
-                end = start.plusMonths(1);
-            } else {
-                throw new RuntimeException(String.format("Invalid schedule type [%s]", type.toString()));
-            }
+            final LocalDateTime end = start.plus(1, type);
 
             return getSchedule(start, end);
         } catch (RuntimeException e){

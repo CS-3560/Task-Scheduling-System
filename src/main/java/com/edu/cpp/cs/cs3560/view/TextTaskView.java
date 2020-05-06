@@ -23,8 +23,14 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,18 +39,15 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class TextTaskView implements TaskView {
-
     private static final String INVALID_INPUT_ERROR_MESSAGE = "\nInvalid Input. Please Try Again.";
     private static final String CORRECTNESS_PROMPT = "Is this correct? [Y,n]";
     private static final String PROMPT_USER_INPUT_FORMAT = "Enter %s:\t";
     private static final String FILE_PATH_PROMPT = "Enter path of file: ";
-    private static final String READ_OPTION = "Read";
-    private static final String WRITE_OPTION = "Write";
-    private static final String INPUT_NON_APPLICABLE_MESSAGE = "If not applicable, enter N/A";
     private static final String CREATE_TASK_PSS_OPERATION = "Create a task";
     private static final String VIEW_TASK_PSS_OPERATION = "View a task";
     private static final String DELETE_TASK_PSS_OPERATION = "Delete a task";
     private static final String EDIT_TASK_PSS_OPERATION = "Edit a task";
+    private static final String VIEW_ALL_TASKS_PSS_OPERATION = "View all tasks";
     private static final String WRITE_TO_FILE_PSS_OPERATION = "Write the Schedule to a file";
     private static final String READ_FROM_FILE_PSS_OPERATION = "Read the schedule from a file";
     private static final String WHOLE_SCHEDULE_PSS_OPERATION = "View the schedule";
@@ -63,18 +66,7 @@ public class TextTaskView implements TaskView {
                                                         "\n3. Done." +
                                                         "\nEnter option to perform: ";
 
-    private static final Map<Integer, String> OPERATIONS = Map.ofEntries(
-            Map.entry(1, CREATE_TASK_PSS_OPERATION),
-            Map.entry(2, VIEW_TASK_PSS_OPERATION),
-            Map.entry(3, DELETE_TASK_PSS_OPERATION),
-            Map.entry(4, EDIT_TASK_PSS_OPERATION),
-            Map.entry(5, WRITE_TO_FILE_PSS_OPERATION),
-            Map.entry(6, READ_FROM_FILE_PSS_OPERATION),
-            Map.entry(7, WHOLE_SCHEDULE_PSS_OPERATION),
-            Map.entry(8, DAY_SCHEDULE_PSS_OPERATION),
-            Map.entry(9, WEEK_SCHEDULE_PSS_OPERATION),
-            Map.entry(10, MONTH_SCHEDULE_PSS_OPERATION)
-    );
+    private static final Map<Integer, String> OPERATIONS = generateOperations();
 
     private static final String PSS_OPERATION_OPTIONS_MENU = generateMenu();
 
@@ -104,6 +96,7 @@ public class TextTaskView implements TaskView {
     public TextTaskView(final UserInterface ui, final TaskSerializer serializer) {
         this.ui = ui;
         this.serializer = serializer;
+        generateOperations();
     }
 
     @Override
@@ -111,6 +104,7 @@ public class TextTaskView implements TaskView {
         return ui.getInput(prompt);
     }
 
+    @Override
     public Map<String, String> getInputs(final String ...s){
         return ui.getInput(s);
     }
@@ -149,6 +143,8 @@ public class TextTaskView implements TaskView {
             }
 
             builder.withData(builder.getType() == PSSOperationType.CREATE_TASK ? getTaskInfo() : getTaskName());
+        } else if(StringUtils.equalsIgnoreCase(operation, VIEW_ALL_TASKS_PSS_OPERATION)){
+            builder.withType(PSSOperationType.VIEW_ALL_TASKS);
         } else if(StringUtils.equalsAnyIgnoreCase(operation, READ_FROM_FILE_PSS_OPERATION, WRITE_TO_FILE_PSS_OPERATION)){
             builder.withType(
                     operation.equalsIgnoreCase(READ_FROM_FILE_PSS_OPERATION)
@@ -156,7 +152,7 @@ public class TextTaskView implements TaskView {
                             : PSSOperationType.WRITE_TO_FILE
             ).withData(getFileInfo());
         } else if(StringUtils.equalsIgnoreCase(operation, WHOLE_SCHEDULE_PSS_OPERATION)){
-            builder.withType(PSSOperationType.VIEW_SCHEDULE).withData(OPERATION_KEY, VIEW_OPERATION_VALUE).withData(TYPE_KEY, WHOLE_SCHEDULE_OPERATION_VALUE);
+            builder.withType(PSSOperationType.VIEW_SCHEDULE).withData(OPERATION_KEY, VIEW_OPERATION_VALUE).withData(TYPE_KEY, ChronoUnit.FOREVER);
         } else if(StringUtils.equalsAnyIgnoreCase(operation, DAY_SCHEDULE_PSS_OPERATION, WEEK_SCHEDULE_PSS_OPERATION, MONTH_SCHEDULE_PSS_OPERATION)){
             final Map<String, Object> data = getScheduleInfo(operation);
 
@@ -247,7 +243,7 @@ public class TextTaskView implements TaskView {
         final String field = getInput(WHAT_FIELD_PROMPT);
         if(data.containsKey(field)){
             return field;
-        } else if (StringUtils.equalsAnyIgnoreCase(field, data.keySet().toArray(new String[0]))){
+        } else if (StringUtils.equalsAnyIgnoreCase(field, data.keySet().toArray(String[]::new))){
             final Optional<String> possible = data.keySet().stream().filter(k -> k.equalsIgnoreCase(field)).findFirst();
             if(possible.isPresent()){
                 final String key = possible.get();
@@ -290,9 +286,9 @@ public class TextTaskView implements TaskView {
         String operation;
         do{
             operation = ui.getInput(SCHEDULE_OPERATION_PROMPT);
-            if(operation.equalsIgnoreCase(VIEW_OPERATION_VALUE)){
+            if(StringUtils.equalsIgnoreCase(operation, VIEW_OPERATION_VALUE)){
                 options.put(OPERATION_KEY, VIEW_OPERATION_VALUE);
-            } else if(operation.equalsIgnoreCase(WRITE_OPERATION_VALUE)){
+            } else if(StringUtils.equalsIgnoreCase(operation, WRITE_OPERATION_VALUE)){
                 options.put(OPERATION_KEY, WRITE_OPERATION_VALUE);
                 options.putAll(getFileInfo());
             } else {
@@ -302,13 +298,13 @@ public class TextTaskView implements TaskView {
 
         options.put(SCHEDULE_START_DATE_KEY, ui.getInput(SCHEDULE_START_DATE_PROMPT));
 
-        String type;
+        TemporalUnit type;
         if(StringUtils.equalsIgnoreCase(input, DAY_SCHEDULE_PSS_OPERATION)){
-            type = DAY_SCHEDULE_OPERATION_VALUE;
+            type = ChronoUnit.DAYS;
         } else if(StringUtils.equalsIgnoreCase(input, WEEK_SCHEDULE_PSS_OPERATION)){
-            type = WEEK_SCHEDULE_OPERATION_VALUE;
+            type = ChronoUnit.WEEKS;
         } else if(StringUtils.equalsIgnoreCase(input, MONTH_SCHEDULE_PSS_OPERATION)){
-            type = MONTH_SCHEDULE_OPERATION_VALUE;
+            type = ChronoUnit.MONTHS;
         } else {
             throw new RuntimeException(INVALID_INPUT_ERROR_MESSAGE);
         }
@@ -320,12 +316,12 @@ public class TextTaskView implements TaskView {
 
     @Override
     public void displayMessage(final String message){
-        ui.displayln(message);
+        ui.displayln(String.format("\n%s\n", message));
     }
 
     @Override
     public void displayError(final String message){
-        ui.displayError(message);
+        ui.displayError(String.format("\n%s\n", message));
     }
 
     private static String generateMenu(){
@@ -338,6 +334,33 @@ public class TextTaskView implements TaskView {
         sb.append("\n\tType \"Quit\" or \"Q\" to exit");
 
         return sb.append(MENU_OPTIONS_PROMPT).toString();
+    }
+
+    private static Map<Integer, String> generateOperations(){
+        List<String> list = Arrays.stream(TextTaskView.class.getDeclaredFields())
+                .filter(f -> Modifier.isStatic(f.getModifiers()))
+                .filter(f -> StringUtils.endsWith(f.getName(), "_OPERATION"))
+                .filter(f -> f.getGenericType() == String.class)
+                .peek(f -> f.setAccessible(true))
+                .map(f -> {
+                    try {
+                        return f.get(null);
+                    } catch (IllegalAccessException e) {
+                        return null;
+                    }
+                })
+                .filter(v -> v instanceof String)
+                .map(v -> (String) v)
+                .collect(Collectors.toList());
+
+        final Map<Integer, String> map = new LinkedHashMap<>();
+
+        final int n = list.size();
+        for(int i = 0; i < n; ++i){
+            map.put((i + 1), list.get(i));
+        }
+
+        return map;
     }
 
     private Collection<String> getValidOperations(){

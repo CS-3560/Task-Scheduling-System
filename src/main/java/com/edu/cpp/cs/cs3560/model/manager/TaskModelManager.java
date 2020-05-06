@@ -178,7 +178,7 @@ public class TaskModelManager implements TaskManager {
 
         if(!Objects.equals(task.getName(), updated.getName())){
             if(taskExists(updated.getName())){
-                throw new TaskManagerException(String.format("Task [%s] already exists", task.getName()));
+                throw new TaskManagerException(String.format("Task [%s] already exists", updated.getName()));
             }
         }
 

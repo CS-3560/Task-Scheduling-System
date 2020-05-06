@@ -16,13 +16,15 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAmount;
 
 
-public class RecurringTransientTask extends RecurringTask implements Task, Comparable<Task> {
+public class RecurringTransientTask extends RecurringTask implements Task, Comparable<Task>, Serializable {
+    private static final long serialVersionUID = -678024661241951079L;
 
     @SerializedName("Date")
     private final LocalDate date;
